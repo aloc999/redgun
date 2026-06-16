@@ -8,6 +8,7 @@ import { scanSamlRemote, scanLdapRemote, scanMfaBypass, scanWebsocketReplay, sca
 import { scanSsrfBypassChains, scanJwtRemoteAdvanced, scanGrpc, scanOpenApi, scanWebrtc, scanStoredDomXss, scanSsiRemote, scanXpathRemote, scanTimingRemote } from './src/remote/complete.js';
 import { scanLlmRemote, scanCssInjectionRemote, scanPostMessageRemote, scanEsiRemote, scanHttp3, scanHpackBomb, scanSmtpRemote, scanDkimReplay } from './src/remote/modern.js';
 import { validateFindings } from './src/core/validator.js';
+import { runBrowserEngine } from './src/remote/browser.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
   const target = new URL(url);
@@ -15,6 +16,7 @@ export async function runRemoteScan(url, spinner, modules = null) {
   const origin = target.origin;
 
   const allModules = [
+    { name: 'Browser Engine (Puppeteer)', value: 'browser', fn: () => runBrowserEngine(origin, spinner) },
     { name: 'Probe & Fingerprint (httpx)', value: 'probe', fn: () => runProbe(origin, spinner) },
     { name: 'Crawl & Extract (Katana)', value: 'crawl', fn: () => runCrawler(origin, spinner) },
     { name: 'HTTP Headers', value: 'headers', fn: () => scanHeaders(origin, spinner) },
