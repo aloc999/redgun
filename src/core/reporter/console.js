@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { getFindings, getSeverityCounts } from '../findings.js';
+import { getFindings, getSeverityCounts, getValidationStats } from '../findings.js';
 import { calculateScore, getGrade } from '../score.js';
 
 const SEVERITY_COLORS = {
@@ -28,6 +28,7 @@ export function printResults() {
   const score = calculateScore();
   const grade = getGrade(score);
   const counts = getSeverityCounts();
+  const vstats = getValidationStats();
 
   console.log('\n' + chalk.bold('═══════════════════════════════════════════════════════'));
   console.log(chalk.bold('  SCAN RESULTS'));
@@ -43,6 +44,18 @@ export function printResults() {
   console.log(`  ${SEVERITY_COLORS.INFO(' INFO ')} ${counts.info}`);
   console.log('');
 
+  if (vstats.validated > 0) {
+    console.log(chalk.bold('  VALIDATION RESULTS'));
+    console.log(`  ${chalk.green('✓ Confirmed')}: ${vstats.confirmed}  ` +
+      `${chalk.yellow('? Inconclusive')}: ${vstats.inconclusive}  ` +
+      `${chalk.red('✗ Rejected')}: ${vstats.rejected}`);
+    console.log(`  ${chalk.gray('False positives eliminated:')} ${vstats.total - findings.length}`);
+    if (vstats.rejected > 0) {
+      console.log(`  ${chalk.red.bold('  ' + vstats.rejected + ' findings downgraded/removed after validation')}`);
+    }
+    console.log('');
+  }
+
   const grouped = {};
   for (const finding of findings) {
     if (!grouped[finding.module]) grouped[finding.module] = [];
@@ -53,8 +66,22 @@ export function printResults() {
     console.log(chalk.bold(`\n  ┌─ ${module}`));
     for (const f of moduleFindings) {
       const color = SEVERITY_COLORS[f.severity] || chalk.white;
-      console.log(`  │ ${color(`[${f.severity}]`)} ${f.title}`);
+      let confidenceBar = '';
+      if (f.validated && f.confidence > 0) {
+        const barWidth = Math.round(f.confidence / 10);
+        const barColor = f.confidence >= 70 ? chalk.green : f.confidence >= 40 ? chalk.yellow : chalk.red;
+        confidenceBar = `  ${barColor('█'.repeat(barWidth) + '░'.repeat(10 - barWidth))} ${f.confidence}%`;
+      }
+      const badge = f.validated
+        ? (f.exploitability === 'confirmed' ? chalk.green.bold(' ✓CONFIRMED') :
+           f.exploitability === 'rejected' ? chalk.red.bold(' ✗REJECTED') : chalk.yellow.bold(' ?INCONCLUSIVE'))
+        : chalk.gray(' UNVERIFIED');
+      console.log(`  │ ${color(`[${f.severity}]`)} ${f.title}${badge}`);
+      if (confidenceBar) console.log(`  │  ${confidenceBar}`);
       if (f.details) console.log(`  │   ${chalk.gray(f.details.substring(0, 120))}`);
+      if (f.validationNote && f.validated) {
+        console.log(`  │   ${chalk.magenta('Validation:')} ${f.validationNote.substring(0, 120)}`);
+      }
       if (f.fix) console.log(`  │   ${chalk.green('Fix:')} ${f.fix.substring(0, 120)}`);
     }
     console.log('  └─');

@@ -7,6 +7,7 @@ import { scanXxeRemote, scanOauthRemote, scanAccessControlRemote, scanWebCacheDe
 import { scanSamlRemote, scanLdapRemote, scanMfaBypass, scanWebsocketReplay, scanPasswordReset, scanCsrfRemote, scanDanglingDns, scanCloudRemote } from './src/remote/advanced.js';
 import { scanSsrfBypassChains, scanJwtRemoteAdvanced, scanGrpc, scanOpenApi, scanWebrtc, scanStoredDomXss, scanSsiRemote, scanXpathRemote, scanTimingRemote } from './src/remote/complete.js';
 import { scanLlmRemote, scanCssInjectionRemote, scanPostMessageRemote, scanEsiRemote, scanHttp3, scanHpackBomb, scanSmtpRemote, scanDkimReplay } from './src/remote/modern.js';
+import { validateFindings } from './src/core/validator.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
   const target = new URL(url);
@@ -85,6 +86,9 @@ export async function runRemoteScan(url, spinner, modules = null) {
       // Module failed silently
     }
   }
+
+  spinner.text = '[Validation] Verifying findings...';
+  await validateFindings(origin, spinner);
 }
 
 async function scanHeaders(origin, spinner) {

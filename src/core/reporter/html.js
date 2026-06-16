@@ -1,6 +1,6 @@
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { getFindings, getSeverityCounts } from '../findings.js';
+import { getFindings, getSeverityCounts, getValidationStats } from '../findings.js';
 import { calculateScore, getGrade, getGradeColor } from '../score.js';
 
 export function exportHtml(outputDir = './scans') {
@@ -15,6 +15,7 @@ export function exportHtml(outputDir = './scans') {
   const grade = getGrade(score);
   const gradeColor = getGradeColor(grade);
   const counts = getSeverityCounts();
+  const vstats = getValidationStats();
   const findings = getFindings();
 
   const grouped = {};
@@ -37,10 +38,20 @@ export function exportHtml(outputDir = './scans') {
     if (!grouped[sev] || grouped[sev].length === 0) continue;
     findingsHtml += `<h3 style="color:${severityColors[sev]}">${sev} (${grouped[sev].length})</h3>`;
     for (const f of grouped[sev]) {
+      const vBadge = f.validated
+        ? (f.exploitability === 'confirmed' ? '<span style="background:#238636;color:#fff;padding:1px 6px;border-radius:3px;font-size:0.8em">CONFIRMED</span>'
+          : f.exploitability === 'rejected' ? '<span style="background:#da3633;color:#fff;padding:1px 6px;border-radius:3px;font-size:0.8em">REJECTED</span>'
+          : '<span style="background:#d29922;color:#fff;padding:1px 6px;border-radius:3px;font-size:0.8em">INCONCLUSIVE</span>')
+        : '';
+      const confidenceBar = f.validated && f.confidence > 0
+        ? `<div style="margin:4px 0;background:#21262d;border-radius:4px;height:6px"><div style="width:${f.confidence}%;height:6px;border-radius:4px;background:${f.confidence >= 70 ? '#238636' : f.confidence >= 40 ? '#d29922' : '#da3633'}"></div></div><span style="font-size:0.8em;color:#8b949e">Confidence: ${f.confidence}%</span>`
+        : '';
       findingsHtml += `
         <div class="finding" style="border-left:4px solid ${severityColors[sev]}">
-          <strong>[${f.module}]</strong> ${escapeHtml(f.title)}
+          <strong>[${f.module}]</strong> ${escapeHtml(f.title)} ${vBadge}
+          ${confidenceBar}
           ${f.details ? `<p class="details">${escapeHtml(f.details)}</p>` : ''}
+          ${f.validationNote && f.validated ? `<p class="valnote" style="color:#d2a8ff;font-size:0.9em">Validation: ${escapeHtml(f.validationNote)}</p>` : ''}
           ${f.fix ? `<p class="fix"><strong>Fix:</strong> ${escapeHtml(f.fix)}</p>` : ''}
         </div>`;
     }
@@ -86,6 +97,15 @@ export function exportHtml(outputDir = './scans') {
         <div class="count-item"><div class="count-num" style="color:#9e9e9e">${counts.info}</div>Info</div>
       </div>
     </div>
+    ${vstats.validated > 0 ? `
+    <div style="background:#161b22;border-radius:12px;padding:1rem;margin:1rem 0;text-align:center">
+      <strong style="color:#58a6ff">Validation Results</strong>
+      <div class="counts" style="margin-top:0.5rem">
+        <div class="count-item"><div class="count-num" style="color:#238636">${vstats.confirmed}</div>Confirmed</div>
+        <div class="count-item"><div class="count-num" style="color:#d29922">${vstats.inconclusive}</div>Inconclusive</div>
+        <div class="count-item"><div class="count-num" style="color:#da3633">${vstats.rejected}</div>Rejected</div>
+      </div>
+    </div>` : ''}
     <h2>Findings (${findings.length} total)</h2>
     ${findingsHtml}
     <div class="footer">
