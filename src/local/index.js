@@ -16,6 +16,14 @@ import { auditXxe } from './xxe.js';
 import { auditAccessControl } from './access-control.js';
 import { auditOauth } from './oauth.js';
 import { auditBusinessLogic } from './business-logic.js';
+import { auditSaml } from './saml.js';
+import { auditLdap } from './ldap.js';
+import { auditCsrf } from './csrf.js';
+import { auditAto } from './ato.js';
+import { auditCloud } from './cloud.js';
+import { auditCicd } from './cicd.js';
+import { auditMobile } from './mobile.js';
+import { auditWeb3 } from './web3.js';
 
 export const LOCAL_MODULES = [
   { name: 'Code Secrets', value: 'secrets', fn: auditSecrets },
@@ -24,18 +32,26 @@ export const LOCAL_MODULES = [
   { name: 'Code Vulnerabilities (SQLi, XSS)', value: 'codevuln', fn: auditCodeVulnerabilities },
   { name: 'Auth & Middleware', value: 'auth', fn: auditAuth },
   { name: 'Headers Config (CSP/HSTS)', value: 'headers', fn: auditHeadersConfig },
-  { name: 'SSRF Detection (HackTricks)', value: 'ssrf', fn: auditSsrf },
-  { name: 'SSTI Detection (HackTricks)', value: 'ssti', fn: auditSsti },
-  { name: 'Insecure Deserialization (HackTricks)', value: 'deser', fn: auditDeserialization },
-  { name: 'Prototype Pollution (HackTricks)', value: 'proto', fn: auditPrototypePollution },
-  { name: 'JWT Vulnerabilities (HackTricks)', value: 'jwt', fn: auditJwt },
-  { name: 'Path Traversal / LFI (HackTricks)', value: 'lfi', fn: auditPathTraversal },
-  { name: 'Command Injection (HackTricks)', value: 'cmdi', fn: auditCommandInjection },
-  { name: 'Weak Cryptography (HackTricks)', value: 'crypto', fn: auditCrypto },
+  { name: 'SSRF Detection', value: 'ssrf', fn: auditSsrf },
+  { name: 'SSTI Detection', value: 'ssti', fn: auditSsti },
+  { name: 'Insecure Deserialization', value: 'deser', fn: auditDeserialization },
+  { name: 'Prototype Pollution', value: 'proto', fn: auditPrototypePollution },
+  { name: 'JWT Vulnerabilities', value: 'jwt', fn: auditJwt },
+  { name: 'Path Traversal / LFI', value: 'lfi', fn: auditPathTraversal },
+  { name: 'Command Injection', value: 'cmdi', fn: auditCommandInjection },
+  { name: 'Weak Cryptography', value: 'crypto', fn: auditCrypto },
   { name: 'XXE - XML External Entity (PortSwigger)', value: 'xxe', fn: auditXxe },
   { name: 'Access Control / IDOR (PortSwigger)', value: 'idor', fn: auditAccessControl },
   { name: 'OAuth / OIDC Flaws (PortSwigger)', value: 'oauth', fn: auditOauth },
   { name: 'Business Logic Flaws (PortSwigger)', value: 'bizlogic', fn: auditBusinessLogic },
+  { name: 'SAML / SSO Attacks', value: 'saml', fn: auditSaml },
+  { name: 'LDAP Injection', value: 'ldap', fn: auditLdap },
+  { name: 'CSRF Token Analysis', value: 'csrf', fn: auditCsrf },
+  { name: 'Account Takeover (ATO)', value: 'ato', fn: auditAto },
+  { name: 'Cloud Misconfig (S3/IAM)', value: 'cloud', fn: auditCloud },
+  { name: 'CI/CD Pipeline', value: 'cicd', fn: auditCicd },
+  { name: 'Mobile Security', value: 'mobile', fn: auditMobile },
+  { name: 'Web3 / Smart Contracts', value: 'web3', fn: auditWeb3 },
 ];
 
 export async function runLocalAudit(projectPath, spinner, modules = null) {

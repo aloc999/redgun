@@ -4,6 +4,7 @@ import { EXPOSED_FILES, HEADER_CHECKS, COMMON_SUBDOMAINS, COMMON_PORTS, SECRET_P
 import { runCrawler } from './src/remote/crawler.js';
 import { runProbe } from './src/remote/probe.js';
 import { scanXxeRemote, scanOauthRemote, scanAccessControlRemote, scanWebCacheDeception, scanParameterPollution, scanFileUpload, scanDomBased, scanHttp2 } from './src/remote/portswigger.js';
+import { scanSamlRemote, scanLdapRemote, scanMfaBypass, scanWebsocketReplay, scanPasswordReset, scanCsrfRemote, scanDanglingDns, scanCloudRemote } from './src/remote/advanced.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
   const target = new URL(url);
@@ -46,6 +47,14 @@ export async function runRemoteScan(url, spinner, modules = null) {
     { name: 'File Upload Testing (PortSwigger)', value: 'upload', fn: () => scanFileUpload(origin, spinner) },
     { name: 'DOM-Based Vulnerabilities (PortSwigger)', value: 'dom', fn: () => scanDomBased(origin, spinner) },
     { name: 'HTTP/2 Attacks (PortSwigger)', value: 'h2', fn: () => scanHttp2(origin, spinner) },
+    { name: 'SAML/SSO Attacks', value: 'saml', fn: () => scanSamlRemote(origin, spinner) },
+    { name: 'LDAP Injection', value: 'ldap', fn: () => scanLdapRemote(origin, spinner) },
+    { name: 'MFA Bypass Testing', value: 'mfa', fn: () => scanMfaBypass(origin, spinner) },
+    { name: 'WebSocket Replay/CSWSH', value: 'wshijack', fn: () => scanWebsocketReplay(origin, spinner) },
+    { name: 'Password Reset Security', value: 'pwdreset', fn: () => scanPasswordReset(origin, spinner) },
+    { name: 'CSRF Token Analysis (remote)', value: 'csrf', fn: () => scanCsrfRemote(origin, spinner) },
+    { name: 'Subdomain Takeover (Dangling DNS)', value: 'takeover', fn: () => scanDanglingDns(hostname, spinner) },
+    { name: 'Cloud Metadata SSRF', value: 'cloudmeta', fn: () => scanCloudRemote(origin, spinner) },
   ];
 
   const toRun = modules ? allModules.filter((m) => modules.includes(m.value)) : allModules;
