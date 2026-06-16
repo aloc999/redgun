@@ -144,7 +144,7 @@ jobs:
 ### Inputs
 
 | Input | Description | Default |
-|---|---|
+|---|---|---|
 | `path` | Project path to audit | `.` |
 | `min-score` | Minimum score required to pass (0-100) | `70` |
 | `fail-on-score` | Fail the workflow if score is below min-score | `true` |
@@ -169,7 +169,7 @@ jobs:
 Every scan produces a security score from 0 to 100, graded A through F.
 
 | Severity | Score impact | Meaning |
-|---|---|
+|---|---|---|
 | **Critical** | -15 | Exploitable vulnerability, immediate action required |
 | **High** | -8 | Serious risk, fix soon |
 | **Medium** | -3 | Moderate risk, fix when possible |
