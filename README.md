@@ -52,68 +52,68 @@ redgun modules                    # List all modules
 
 ## Remote Scan Modules (33 — Black-box)
 
-| Module | What it tests | Source |
-|---|---|---|
-| **Probe & Fingerprint** | Status code, title, technologies (40+), CDN/WAF detection, favicon hash, response time, virtual host discovery | httpx |
-| **Crawl & Extract** | JS file parsing, endpoint extraction, form discovery, parameter mining, email harvesting, secret detection in bundles | Katana |
-| **HTTP Headers** | Missing CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP, CORP, COEP | OWASP |
-| **Exposed Files** | `.env`, `.git/config`, `package.json`, `.DS_Store`, source maps, actuator, swagger, phpinfo, Docker files, backups | HackTricks |
-| **Secrets Detection** | API keys (AWS, Stripe, Firebase, Supabase, OpenAI, Anthropic), tokens, passwords in page source | HackTricks |
-| **XSS Reflected** | 6 payloads × 14 parameters, DOM-based indicators | HackTricks |
-| **SQL Injection** | Error-based, UNION-based, time-based blind across common parameters | HackTricks |
-| **CORS Misconfiguration** | Wildcard + credentials, reflected origin, null origin | HackTricks |
-| **Open Redirect** | 12 redirect parameters tested with external URL | HackTricks |
-| **SSRF** | AWS metadata, internal IPs, localhost, IPv6, decimal IP, file:// protocol | HackTricks |
-| **Host Header Injection** | Reflected host, X-Forwarded-Host poisoning | HackTricks |
-| **HTTP Request Smuggling** | CL.TE probe detection | HackTricks |
-| **CRLF Injection** | Header injection via URL encoding variants | HackTricks |
-| **GraphQL Introspection** | Schema exposure via introspection query at 5 endpoints | HackTricks |
-| **Clickjacking** | Missing X-Frame-Options and frame-ancestors CSP | OWASP |
-| **Cookie Security** | Missing HttpOnly, Secure, SameSite flags | OWASP |
-| **HTTP Methods** | TRACE, PUT, DELETE enabled | HackTricks |
-| **Subdomain Enumeration** | 40+ common subdomains, dangerous subdomain detection | HackTricks |
-| **DNS & Email** | SPF, DKIM, DMARC analysis | HackTricks |
-| **Technology Fingerprint** | 40+ frameworks, servers, and services detected | — |
-| **API Discovery** | Common API paths, auth testing | HackTricks |
-| **SSL/TLS Analysis** | HTTP vs HTTPS detection | OWASP |
-| **Path Traversal / LFI** | Double-encoding, unicode bypass, null byte | HackTricks |
-| **NoSQL Injection** | MongoDB operator injection auth bypass | HackTricks |
-| **WebSocket Security** | Origin validation, authentication checks | HackTricks |
-| **Cache Poisoning** | Unkeyed headers (X-Forwarded-Host, X-Forwarded-Scheme, X-Original-URL) | HackTricks |
-| **Race Conditions** | Detection guidance for concurrent request attacks | HackTricks |
-| **XXE Injection** | XML entity injection at upload/import/SOAP endpoints | PortSwigger |
-| **OAuth Misconfiguration** | redirect_uri validation, OIDC config exposure, implicit flow detection | PortSwigger |
-| **Access Control Bypass** | Admin panel exposure, 403 bypass via X-Original-URL/X-Forwarded-For, robots.txt disclosure | PortSwigger |
-| **Web Cache Deception** | Static extension cache deception, path normalization inconsistency | PortSwigger |
-| **Parameter Pollution** | HTTP Parameter Pollution, null byte truncation, duplicate params | PortSwigger |
-| **File Upload Testing** | Upload endpoint discovery, OPTIONS probing | PortSwigger |
-| **DOM-Based Vulnerabilities** | DOM sinks (document.write, innerHTML, eval, postMessage), source-to-sink flow | PortSwigger |
-| **HTTP/2 Attacks** | H2.CL/H2.TE smuggling indicators, HPACK injection surface | PortSwigger |
+| Module | What it tests |
+|---|---|
+| **Probe & Fingerprint** | Status code, title, technologies (40+), CDN/WAF detection, favicon hash, response time, virtual host discovery |
+| **Crawl & Extract** | JS file parsing, endpoint extraction, form discovery, parameter mining, email harvesting, secret detection in bundles |
+| **HTTP Headers** | Missing CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP, CORP, COEP |
+| **Exposed Files** | `.env`, `.git/config`, `package.json`, `.DS_Store`, source maps, actuator, swagger, phpinfo, Docker files, backups |
+| **Secrets Detection** | API keys (AWS, Stripe, Firebase, Supabase, OpenAI, Anthropic), tokens, passwords in page source |
+| **XSS Reflected** | 6 payloads × 14 parameters, DOM-based indicators |
+| **SQL Injection** | Error-based, UNION-based, time-based blind across common parameters |
+| **CORS Misconfiguration** | Wildcard + credentials, reflected origin, null origin |
+| **Open Redirect** | 12 redirect parameters tested with external URL |
+| **SSRF** | AWS metadata, internal IPs, localhost, IPv6, decimal IP, file:// protocol |
+| **Host Header Injection** | Reflected host, X-Forwarded-Host poisoning |
+| **HTTP Request Smuggling** | CL.TE probe detection |
+| **CRLF Injection** | Header injection via URL encoding variants |
+| **GraphQL Introspection** | Schema exposure via introspection query at 5 endpoints |
+| **Clickjacking** | Missing X-Frame-Options and frame-ancestors CSP |
+| **Cookie Security** | Missing HttpOnly, Secure, SameSite flags |
+| **HTTP Methods** | TRACE, PUT, DELETE enabled |
+| **Subdomain Enumeration** | 40+ common subdomains, dangerous subdomain detection |
+| **DNS & Email** | SPF, DKIM, DMARC analysis |
+| **Technology Fingerprint** | 40+ frameworks, servers, and services detected |
+| **API Discovery** | Common API paths, auth testing |
+| **SSL/TLS Analysis** | HTTP vs HTTPS detection |
+| **Path Traversal / LFI** | Double-encoding, unicode bypass, null byte |
+| **NoSQL Injection** | MongoDB operator injection auth bypass |
+| **WebSocket Security** | Origin validation, authentication checks |
+| **Cache Poisoning** | Unkeyed headers (X-Forwarded-Host, X-Forwarded-Scheme, X-Original-URL) |
+| **Race Conditions** | Detection guidance for concurrent request attacks |
+| **XXE Injection** | XML entity injection at upload/import/SOAP endpoints |
+| **OAuth Misconfiguration** | redirect_uri validation, OIDC config exposure, implicit flow detection |
+| **Access Control Bypass** | Admin panel exposure, 403 bypass via X-Original-URL/X-Forwarded-For, robots.txt disclosure |
+| **Web Cache Deception** | Static extension cache deception, path normalization inconsistency |
+| **Parameter Pollution** | HTTP Parameter Pollution, null byte truncation, duplicate params |
+| **File Upload Testing** | Upload endpoint discovery, OPTIONS probing |
+| **DOM-Based Vulnerabilities** | DOM sinks (document.write, innerHTML, eval, postMessage), source-to-sink flow |
+| **HTTP/2 Attacks** | H2.CL/H2.TE smuggling indicators, HPACK injection surface |
 
 <br>
 
 ## Local Audit Modules (18 — White-box)
 
-| Module | What it checks | Source |
-|---|---|---|
-| **Code Secrets** | 25+ secret patterns (AWS, GitHub, Stripe, OpenAI, Anthropic, Discord, Telegram, npm, etc.) with line numbers | HackTricks |
-| **Environment Files** | `.env` in `.gitignore`, real secrets in `.env.example`, sensitive config exposure | OWASP |
-| **Dependencies** | `npm audit` for CVEs, supply-chain attack package detection | OWASP |
-| **Code Vulnerabilities** | SQL injection (template literals), XSS (`v-html`, `dangerouslySetInnerHTML`, `innerHTML`), eval(), ReDoS | HackTricks |
-| **Auth & Middleware** | Rate limiting, CORS wildcards, CSRF protection, session config, JWT expiration, hardcoded passwords | HackTricks |
-| **Headers Config** | CSP/HSTS in Nuxt, Next.js, Vercel, Netlify, Express configs | OWASP |
-| **SSRF Detection** | User-controlled URLs in fetch/axios/request/http.get/urllib | HackTricks |
-| **SSTI Detection** | Jinja2, Twig, Nunjucks, Pug, EJS, Handlebars, Velocity, Freemarker, Thymeleaf | HackTricks |
-| **Insecure Deserialization** | pickle, yaml.load, unserialize, ObjectInputStream, Marshal, BinaryFormatter | HackTricks |
-| **Prototype Pollution** | Object.assign, spread operator, deepmerge, lodash.merge, __proto__ access | HackTricks |
-| **JWT Vulnerabilities** | Algorithm "none", verify disabled, weak secrets, expiration bypass, decode without verify | HackTricks |
-| **Path Traversal / LFI** | User input in file paths, readFile, sendFile, include/require | HackTricks |
-| **Command Injection** | exec, spawn, child_process, system, subprocess with user input, shell interpolation | HackTricks |
-| **Weak Cryptography** | MD5, SHA1, DES, RC4, ECB mode, Math.random, hardcoded keys/IVs | HackTricks |
-| **XXE Detection** | XML parsers without entity disabled, DOMParser, lxml, simplexml with user input | PortSwigger |
-| **Access Control / IDOR** | Direct object reference, role from user input, admin headers, ownership checks | PortSwigger |
-| **OAuth / OIDC Flaws** | redirect_uri manipulation, missing state, client_secret exposure, token storage | PortSwigger |
-| **Business Logic** | Price manipulation, negative quantity, workflow step skipping, race conditions, referral abuse | PortSwigger |
+| Module | What it checks |
+|---|---|
+| **Code Secrets** | 25+ secret patterns (AWS, GitHub, Stripe, OpenAI, Anthropic, Discord, Telegram, npm, etc.) with line numbers |
+| **Environment Files** | `.env` in `.gitignore`, real secrets in `.env.example`, sensitive config exposure |
+| **Dependencies** | `npm audit` for CVEs, supply-chain attack package detection |
+| **Code Vulnerabilities** | SQL injection (template literals), XSS (`v-html`, `dangerouslySetInnerHTML`, `innerHTML`), eval(), ReDoS |
+| **Auth & Middleware** | Rate limiting, CORS wildcards, CSRF protection, session config, JWT expiration, hardcoded passwords |
+| **Headers Config** | CSP/HSTS in Nuxt, Next.js, Vercel, Netlify, Express configs |
+| **SSRF Detection** | User-controlled URLs in fetch/axios/request/http.get/urllib |
+| **SSTI Detection** | Jinja2, Twig, Nunjucks, Pug, EJS, Handlebars, Velocity, Freemarker, Thymeleaf |
+| **Insecure Deserialization** | pickle, yaml.load, unserialize, ObjectInputStream, Marshal, BinaryFormatter |
+| **Prototype Pollution** | Object.assign, spread operator, deepmerge, lodash.merge, __proto__ access |
+| **JWT Vulnerabilities** | Algorithm "none", verify disabled, weak secrets, expiration bypass, decode without verify |
+| **Path Traversal / LFI** | User input in file paths, readFile, sendFile, include/require |
+| **Command Injection** | exec, spawn, child_process, system, subprocess with user input, shell interpolation |
+| **Weak Cryptography** | MD5, SHA1, DES, RC4, ECB mode, Math.random, hardcoded keys/IVs |
+| **XXE Detection** | XML parsers without entity disabled, DOMParser, lxml, simplexml with user input |
+| **Access Control / IDOR** | Direct object reference, role from user input, admin headers, ownership checks |
+| **OAuth / OIDC Flaws** | redirect_uri manipulation, missing state, client_secret exposure, token storage |
+| **Business Logic** | Price manipulation, negative quantity, workflow step skipping, race conditions, referral abuse |
 
 <br>
 
@@ -144,7 +144,7 @@ jobs:
 ### Inputs
 
 | Input | Description | Default |
-|---|---|---|
+|---|---|
 | `path` | Project path to audit | `.` |
 | `min-score` | Minimum score required to pass (0-100) | `70` |
 | `fail-on-score` | Fail the workflow if score is below min-score | `true` |
@@ -169,7 +169,7 @@ jobs:
 Every scan produces a security score from 0 to 100, graded A through F.
 
 | Severity | Score impact | Meaning |
-|---|---|---|
+|---|---|
 | **Critical** | -15 | Exploitable vulnerability, immediate action required |
 | **High** | -8 | Serious risk, fix soon |
 | **Medium** | -3 | Moderate risk, fix when possible |
