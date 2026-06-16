@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <strong>Black-box & white-box security auditor for web applications — HackTricks Enhanced.</strong>
+  <strong>Black-box & white-box security auditor for web applications — Enhanced.</strong>
 </p>
 
 <p align="center">
