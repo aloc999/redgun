@@ -17,7 +17,6 @@
   <a href="https://github.com/aloc999/redgun/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D18-green" alt="Node">
   <img src="https://img.shields.io/badge/modules-51-ff4444" alt="Modules">
-  <img src="https://img.shields.io/badge/HackTricks-Enhanced-critical" alt="HackTricks">
 </p>
 
 <br>
