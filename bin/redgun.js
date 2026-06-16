@@ -19,7 +19,7 @@ const program = new Command();
 
 program
   .name('redgun')
-  .description('Black-box & white-box security auditor for web applications (HackTricks Enhanced)')
+  .description('Black-box & white-box security auditor for web applications (Enhanced)')
   .version('1.0.0');
 
 program

@@ -19,7 +19,7 @@ export function printBanner() {
   ██║  ██║███████╗██████╔╝╚██████╔╝╚██████╔╝██║ ╚████║
   ╚═╝  ╚═╝╚══════╝╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝
   `));
-  console.log(chalk.gray('  Black-box & white-box security auditor | HackTricks Enhanced\n'));
+  console.log(chalk.gray('  Black-box & white-box security auditor | Enhanced\n'));
 }
 
 export function printResults() {

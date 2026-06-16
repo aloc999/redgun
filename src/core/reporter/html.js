@@ -89,7 +89,7 @@ export function exportHtml(outputDir = './scans') {
     <h2>Findings (${findings.length} total)</h2>
     ${findingsHtml}
     <div class="footer">
-      <p>RedGun Security Scanner v1.0.0 | HackTricks Enhanced</p>
+      <p>RedGun Security Scanner v1.1.0 | Enhanced</p>
     </div>
   </div>
 </body>
