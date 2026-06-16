@@ -12,6 +12,10 @@ import { auditJwt } from './jwt.js';
 import { auditPathTraversal } from './path-traversal.js';
 import { auditCommandInjection } from './command-injection.js';
 import { auditCrypto } from './crypto.js';
+import { auditXxe } from './xxe.js';
+import { auditAccessControl } from './access-control.js';
+import { auditOauth } from './oauth.js';
+import { auditBusinessLogic } from './business-logic.js';
 
 export const LOCAL_MODULES = [
   { name: 'Code Secrets', value: 'secrets', fn: auditSecrets },
@@ -28,6 +32,10 @@ export const LOCAL_MODULES = [
   { name: 'Path Traversal / LFI (HackTricks)', value: 'lfi', fn: auditPathTraversal },
   { name: 'Command Injection (HackTricks)', value: 'cmdi', fn: auditCommandInjection },
   { name: 'Weak Cryptography (HackTricks)', value: 'crypto', fn: auditCrypto },
+  { name: 'XXE - XML External Entity (PortSwigger)', value: 'xxe', fn: auditXxe },
+  { name: 'Access Control / IDOR (PortSwigger)', value: 'idor', fn: auditAccessControl },
+  { name: 'OAuth / OIDC Flaws (PortSwigger)', value: 'oauth', fn: auditOauth },
+  { name: 'Business Logic Flaws (PortSwigger)', value: 'bizlogic', fn: auditBusinessLogic },
 ];
 
 export async function runLocalAudit(projectPath, spinner, modules = null) {

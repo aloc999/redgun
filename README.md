@@ -16,7 +16,7 @@
 <p align="center">
   <a href="https://github.com/aloc999/redgun/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D18-green" alt="Node">
-  <img src="https://img.shields.io/badge/modules-39-ff4444" alt="Modules">
+  <img src="https://img.shields.io/badge/modules-51-ff4444" alt="Modules">
   <img src="https://img.shields.io/badge/HackTricks-Enhanced-critical" alt="HackTricks">
 </p>
 
@@ -24,11 +24,11 @@
 
 ## What is RedGun?
 
-RedGun is a security auditing CLI tool that finds vulnerabilities in your web applications. It includes **39 security modules** covering techniques from [HackTricks](https://book.hacktricks.wiki). Two modes:
+RedGun is a security auditing CLI tool that finds vulnerabilities in your web applications. It includes **51 security modules** covering techniques from [HackTricks](https://book.hacktricks.wiki), [PortSwigger Web Security Academy](https://portswigger.net/web-security), [Katana](https://github.com/projectdiscovery/katana), and [httpx](https://github.com/projectdiscovery/httpx). Two modes:
 
-**Remote scan** (black-box): Give it a URL. It tests your site from the outside — XSS, SQLi, SSRF, CORS, CRLF injection, cache poisoning, host header injection, HTTP request smuggling, GraphQL introspection, path traversal, NoSQL injection, and more.
+**Remote scan** (black-box): Give it a URL. It crawls with Katana-style JS parsing, fingerprints with httpx-style probing, then tests — XSS, SQLi, SSRF, CORS, XXE, OAuth, IDOR, cache deception, DOM-based, HTTP smuggling, CRLF, parameter pollution, file upload, and more.
 
-**Local audit** (white-box): Point it at your project directory. It reads your source code checking for secrets, SSTI, insecure deserialization, prototype pollution, JWT vulnerabilities, command injection, weak crypto, path traversal, and more.
+**Local audit** (white-box): Point it at your project directory. It reads your source code checking for secrets, SSTI, XXE, insecure deserialization, prototype pollution, JWT attacks, OAuth flaws, IDOR, business logic, command injection, weak crypto, and more.
 
 <br>
 
@@ -51,10 +51,12 @@ redgun modules                    # List all modules
 
 <br>
 
-## Remote Scan Modules (25 — Black-box)
+## Remote Scan Modules (33 — Black-box)
 
 | Module | What it tests | Source |
 |---|---|---|
+| **Probe & Fingerprint** | Status code, title, technologies (40+), CDN/WAF detection, favicon hash, response time, virtual host discovery | httpx |
+| **Crawl & Extract** | JS file parsing, endpoint extraction, form discovery, parameter mining, email harvesting, secret detection in bundles | Katana |
 | **HTTP Headers** | Missing CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP, CORP, COEP | OWASP |
 | **Exposed Files** | `.env`, `.git/config`, `package.json`, `.DS_Store`, source maps, actuator, swagger, phpinfo, Docker files, backups | HackTricks |
 | **Secrets Detection** | API keys (AWS, Stripe, Firebase, Supabase, OpenAI, Anthropic), tokens, passwords in page source | HackTricks |
@@ -80,10 +82,18 @@ redgun modules                    # List all modules
 | **WebSocket Security** | Origin validation, authentication checks | HackTricks |
 | **Cache Poisoning** | Unkeyed headers (X-Forwarded-Host, X-Forwarded-Scheme, X-Original-URL) | HackTricks |
 | **Race Conditions** | Detection guidance for concurrent request attacks | HackTricks |
+| **XXE Injection** | XML entity injection at upload/import/SOAP endpoints | PortSwigger |
+| **OAuth Misconfiguration** | redirect_uri validation, OIDC config exposure, implicit flow detection | PortSwigger |
+| **Access Control Bypass** | Admin panel exposure, 403 bypass via X-Original-URL/X-Forwarded-For, robots.txt disclosure | PortSwigger |
+| **Web Cache Deception** | Static extension cache deception, path normalization inconsistency | PortSwigger |
+| **Parameter Pollution** | HTTP Parameter Pollution, null byte truncation, duplicate params | PortSwigger |
+| **File Upload Testing** | Upload endpoint discovery, OPTIONS probing | PortSwigger |
+| **DOM-Based Vulnerabilities** | DOM sinks (document.write, innerHTML, eval, postMessage), source-to-sink flow | PortSwigger |
+| **HTTP/2 Attacks** | H2.CL/H2.TE smuggling indicators, HPACK injection surface | PortSwigger |
 
 <br>
 
-## Local Audit Modules (14 — White-box)
+## Local Audit Modules (18 — White-box)
 
 | Module | What it checks | Source |
 |---|---|---|
@@ -101,6 +111,10 @@ redgun modules                    # List all modules
 | **Path Traversal / LFI** | User input in file paths, readFile, sendFile, include/require | HackTricks |
 | **Command Injection** | exec, spawn, child_process, system, subprocess with user input, shell interpolation | HackTricks |
 | **Weak Cryptography** | MD5, SHA1, DES, RC4, ECB mode, Math.random, hardcoded keys/IVs | HackTricks |
+| **XXE Detection** | XML parsers without entity disabled, DOMParser, lxml, simplexml with user input | PortSwigger |
+| **Access Control / IDOR** | Direct object reference, role from user input, admin headers, ownership checks | PortSwigger |
+| **OAuth / OIDC Flaws** | redirect_uri manipulation, missing state, client_secret exposure, token storage | PortSwigger |
+| **Business Logic** | Price manipulation, negative quantity, workflow step skipping, race conditions, referral abuse | PortSwigger |
 
 <br>
 
@@ -209,9 +223,9 @@ Create a `.redgunignore` file to exclude files from local audit:
 
 <br>
 
-## HackTricks Techniques Included
+## Techniques & Sources
 
-RedGun integrates techniques documented in [HackTricks](https://book.hacktricks.wiki):
+### HackTricks Techniques
 
 - **SSRF** — AWS/GCP metadata, internal IP bypass, DNS rebinding indicators
 - **SSTI** — Template engine detection and exploitation patterns
@@ -231,6 +245,37 @@ RedGun integrates techniques documented in [HackTricks](https://book.hacktricks.
 - **Subdomain Takeover** — Dangling CNAME detection
 - **Weak Cryptography** — Deprecated algorithms and hardcoded key detection
 
+### PortSwigger Web Security Academy Techniques
+
+- **XXE (XML External Entity)** — Entity injection, DTD-based file read, blind OOB XXE, parameter entities
+- **Access Control** — Horizontal/vertical privilege escalation, IDOR, 403 bypass via headers (X-Original-URL, X-Rewrite-URL), referer-based control
+- **OAuth 2.0 Vulnerabilities** — redirect_uri manipulation, state CSRF, implicit flow token theft, client_secret exposure, PKCE bypass
+- **Business Logic** — Price manipulation, negative quantity, workflow step skipping, race condition exploitation, referral abuse, trial abuse
+- **Web Cache Deception** — Static extension deception, path normalization inconsistency, cache key manipulation
+- **DOM-Based Vulnerabilities** — Source-to-sink analysis, document.write, innerHTML, eval, postMessage hijacking
+- **HTTP Parameter Pollution** — Duplicate parameters, server-side truncation, null byte injection
+- **File Upload** — Unrestricted upload, extension bypass, content-type manipulation, polyglot files
+- **HTTP/2 Attacks** — H2.CL smuggling, H2.TE smuggling, HPACK header injection, request tunneling
+
+### Katana (ProjectDiscovery) Techniques
+
+- **JavaScript Crawling** — Parse all JS bundles including lazy-loaded chunks for endpoints
+- **Endpoint Extraction** — API routes, fetch/axios calls, URL patterns from source
+- **Form Discovery** — Automatic form detection with CSRF and sensitive field analysis
+- **Parameter Mining** — Extract all parameters from URLs, forms, and JS source
+- **Secret Extraction** — API keys, tokens, and credentials from JS bundles
+- **Email Harvesting** — Email addresses from page source for social engineering
+
+### httpx (ProjectDiscovery) Techniques
+
+- **Technology Detection** — 40+ technologies fingerprinted (frameworks, CMS, servers, BaaS, analytics)
+- **CDN/WAF Detection** — Cloudflare, AWS CloudFront, Fastly, Akamai, Imperva, Sucuri, Azure, Vercel, Netlify
+- **WAF Fingerprinting** — ModSecurity, Wordfence, F5 BIG-IP, Cloudflare WAF, Incapsula
+- **Favicon Hashing** — MD5 hash for Shodan-style fingerprinting
+- **Virtual Host Discovery** — Host header manipulation to find hidden vhosts
+- **Response Analysis** — Status codes, content-length, response time, title extraction
+- **TLS/Certificate Info** — Protocol detection, certificate validation
+
 <br>
 
 ## Project Structure
@@ -247,7 +292,7 @@ redgun/
 │   │       ├── console.js           # Terminal output
 │   │       ├── json.js              # JSON + SARIF export
 │   │       └── html.js              # HTML report
-│   ├── local/                       # White-box modules (14)
+│   ├── local/                       # White-box modules (18)
 │   │   ├── index.js                 # Module orchestrator
 │   │   ├── secrets.js               # Source code secrets
 │   │   ├── env.js                   # .env audit
@@ -255,18 +300,26 @@ redgun/
 │   │   ├── code-vulnerabilities.js  # SQLi, XSS, eval, ReDoS
 │   │   ├── auth.js                  # Auth & middleware
 │   │   ├── headers-config.js        # CSP/HSTS config
-│   │   ├── ssrf.js                  # SSRF detection
-│   │   ├── ssti.js                  # SSTI detection
-│   │   ├── deserialization.js       # Insecure deserialization
-│   │   ├── prototype-pollution.js   # Prototype pollution
-│   │   ├── jwt.js                   # JWT vulnerabilities
-│   │   ├── path-traversal.js        # LFI/path traversal
-│   │   ├── command-injection.js     # OS command injection
-│   │   └── crypto.js               # Weak cryptography
+│   │   ├── ssrf.js                  # SSRF (HackTricks)
+│   │   ├── ssti.js                  # SSTI (HackTricks)
+│   │   ├── deserialization.js       # Insecure deserialization (HackTricks)
+│   │   ├── prototype-pollution.js   # Prototype pollution (HackTricks)
+│   │   ├── jwt.js                   # JWT vulnerabilities (HackTricks)
+│   │   ├── path-traversal.js        # LFI/path traversal (HackTricks)
+│   │   ├── command-injection.js     # OS command injection (HackTricks)
+│   │   ├── crypto.js               # Weak cryptography (HackTricks)
+│   │   ├── xxe.js                   # XXE detection (PortSwigger)
+│   │   ├── access-control.js        # IDOR/access control (PortSwigger)
+│   │   ├── oauth.js                 # OAuth/OIDC flaws (PortSwigger)
+│   │   └── business-logic.js        # Business logic (PortSwigger)
+│   ├── remote/                      # Black-box enhanced modules
+│   │   ├── crawler.js               # Katana-style JS crawler
+│   │   ├── probe.js                 # httpx-style fingerprinting
+│   │   └── portswigger.js           # PortSwigger remote tests
 │   └── utils/
 │       ├── fetch.js                 # HTTP with timeout
 │       └── patterns.js              # Shared regex patterns
-├── scan.js                          # Remote scan engine (25 modules)
+├── scan.js                          # Remote scan engine (33 modules)
 ├── action.yml                       # GitHub Action definition
 ├── .github/workflows/security.yml
 └── package.json

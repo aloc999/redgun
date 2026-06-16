@@ -1,6 +1,9 @@
 import { addFinding } from './src/core/findings.js';
 import { fetchText, checkUrl } from './src/utils/fetch.js';
 import { EXPOSED_FILES, HEADER_CHECKS, COMMON_SUBDOMAINS, COMMON_PORTS, SECRET_PATTERNS } from './src/utils/patterns.js';
+import { runCrawler } from './src/remote/crawler.js';
+import { runProbe } from './src/remote/probe.js';
+import { scanXxeRemote, scanOauthRemote, scanAccessControlRemote, scanWebCacheDeception, scanParameterPollution, scanFileUpload, scanDomBased, scanHttp2 } from './src/remote/portswigger.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
   const target = new URL(url);
@@ -8,6 +11,8 @@ export async function runRemoteScan(url, spinner, modules = null) {
   const origin = target.origin;
 
   const allModules = [
+    { name: 'Probe & Fingerprint (httpx)', value: 'probe', fn: () => runProbe(origin, spinner) },
+    { name: 'Crawl & Extract (Katana)', value: 'crawl', fn: () => runCrawler(origin, spinner) },
     { name: 'HTTP Headers', value: 'headers', fn: () => scanHeaders(origin, spinner) },
     { name: 'Exposed Files & Paths', value: 'files', fn: () => scanExposedFiles(origin, spinner) },
     { name: 'Secrets in JS Bundles', value: 'secrets', fn: () => scanSecrets(origin, spinner) },
@@ -33,6 +38,14 @@ export async function runRemoteScan(url, spinner, modules = null) {
     { name: 'WebSocket Security (HackTricks)', value: 'websocket', fn: () => scanWebsocket(origin, spinner) },
     { name: 'Cache Poisoning (HackTricks)', value: 'cache', fn: () => scanCachePoisoning(origin, spinner) },
     { name: 'Race Condition Detection (HackTricks)', value: 'race', fn: () => scanRaceCondition(origin, spinner) },
+    { name: 'XXE Injection (PortSwigger)', value: 'xxe', fn: () => scanXxeRemote(origin, spinner) },
+    { name: 'OAuth Misconfiguration (PortSwigger)', value: 'oauth', fn: () => scanOauthRemote(origin, spinner) },
+    { name: 'Access Control Bypass (PortSwigger)', value: 'acl', fn: () => scanAccessControlRemote(origin, spinner) },
+    { name: 'Web Cache Deception (PortSwigger)', value: 'wcd', fn: () => scanWebCacheDeception(origin, spinner) },
+    { name: 'Parameter Pollution (PortSwigger)', value: 'hpp', fn: () => scanParameterPollution(origin, spinner) },
+    { name: 'File Upload Testing (PortSwigger)', value: 'upload', fn: () => scanFileUpload(origin, spinner) },
+    { name: 'DOM-Based Vulnerabilities (PortSwigger)', value: 'dom', fn: () => scanDomBased(origin, spinner) },
+    { name: 'HTTP/2 Attacks (PortSwigger)', value: 'h2', fn: () => scanHttp2(origin, spinner) },
   ];
 
   const toRun = modules ? allModules.filter((m) => modules.includes(m.value)) : allModules;
