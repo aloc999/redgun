@@ -8,6 +8,7 @@ import { scanSamlRemote, scanLdapRemote, scanMfaBypass, scanWebsocketReplay, sca
 import { scanSsrfBypassChains, scanJwtRemoteAdvanced, scanGrpc, scanOpenApi, scanWebrtc, scanStoredDomXss, scanSsiRemote, scanXpathRemote, scanTimingRemote } from './src/remote/complete.js';
 import { scanLlmRemote, scanCssInjectionRemote, scanPostMessageRemote, scanEsiRemote, scanHttp3, scanHpackBomb, scanSmtpRemote, scanDkimReplay } from './src/remote/modern.js';
 import { validateFindings } from './src/core/validator.js';
+import { buildAttackChains } from './src/core/chains.js';
 import { runBrowserEngine } from './src/remote/browser.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
@@ -91,6 +92,9 @@ export async function runRemoteScan(url, spinner, modules = null) {
 
   spinner.text = '[Validation] Verifying findings...';
   await validateFindings(origin, spinner);
+
+  spinner.text = '[Chains] Building attack chains...';
+  await buildAttackChains(origin, spinner);
 }
 
 async function scanHeaders(origin, spinner) {
