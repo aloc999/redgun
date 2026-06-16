@@ -20,6 +20,7 @@ export function printBanner() {
   ╚═╝  ╚═╝╚══════╝╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝
   `));
   console.log(chalk.gray('  Black-box & white-box security auditor | Enhanced\n'));
+  console.log(chalk.gray('  Developed by @aloc999 (Hashemi)\n'));
 }
 
 export function printResults() {
