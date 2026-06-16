@@ -1,7 +1,24 @@
 import https from 'https';
 import http from 'http';
 
+const RATE_LIMIT = 5;
+let lastRequestTime = 0;
+
+async function waitForSlot() {
+  const now = Date.now();
+  const minInterval = 1000 / RATE_LIMIT;
+  const timeSinceLast = now - lastRequestTime;
+
+  if (timeSinceLast < minInterval) {
+    await new Promise((r) => setTimeout(r, minInterval - timeSinceLast));
+  }
+
+  lastRequestTime = Date.now();
+}
+
 export async function fetchWithTimeout(url, options = {}, timeout = 10000) {
+  await waitForSlot();
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
