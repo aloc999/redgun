@@ -5,6 +5,7 @@ import { runCrawler } from './src/remote/crawler.js';
 import { runProbe } from './src/remote/probe.js';
 import { scanXxeRemote, scanOauthRemote, scanAccessControlRemote, scanWebCacheDeception, scanParameterPollution, scanFileUpload, scanDomBased, scanHttp2 } from './src/remote/portswigger.js';
 import { scanSamlRemote, scanLdapRemote, scanMfaBypass, scanWebsocketReplay, scanPasswordReset, scanCsrfRemote, scanDanglingDns, scanCloudRemote } from './src/remote/advanced.js';
+import { scanSsrfBypassChains, scanJwtRemoteAdvanced, scanGrpc, scanOpenApi, scanWebrtc, scanStoredDomXss, scanSsiRemote, scanXpathRemote, scanTimingRemote } from './src/remote/complete.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
   const target = new URL(url);
@@ -55,6 +56,15 @@ export async function runRemoteScan(url, spinner, modules = null) {
     { name: 'CSRF Token Analysis (remote)', value: 'csrf', fn: () => scanCsrfRemote(origin, spinner) },
     { name: 'Subdomain Takeover (Dangling DNS)', value: 'takeover', fn: () => scanDanglingDns(hostname, spinner) },
     { name: 'Cloud Metadata SSRF', value: 'cloudmeta', fn: () => scanCloudRemote(origin, spinner) },
+    { name: 'SSRF Bypass Chains', value: 'ssrfbypass', fn: () => scanSsrfBypassChains(origin, spinner) },
+    { name: 'JWT Advanced (kid/none/JWK)', value: 'jwtadv', fn: () => scanJwtRemoteAdvanced(origin, spinner) },
+    { name: 'gRPC Reflection', value: 'grpc', fn: () => scanGrpc(origin, spinner) },
+    { name: 'OpenAPI/Swagger Fuzz', value: 'openapi', fn: () => scanOpenApi(origin, spinner) },
+    { name: 'WebRTC IP Leak', value: 'webrtc', fn: () => scanWebrtc(origin, spinner) },
+    { name: 'Stored/DOM XSS Auto', value: 'storedxss', fn: () => scanStoredDomXss(origin, spinner) },
+    { name: 'SSI Injection Remote', value: 'ssi', fn: () => scanSsiRemote(origin, spinner) },
+    { name: 'XPath Injection Remote', value: 'xpath', fn: () => scanXpathRemote(origin, spinner) },
+    { name: 'Timing Side-Channel', value: 'timing', fn: () => scanTimingRemote(origin, spinner) },
   ];
 
   const toRun = modules ? allModules.filter((m) => modules.includes(m.value)) : allModules;

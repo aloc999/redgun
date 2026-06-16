@@ -24,6 +24,12 @@ import { auditCloud } from './cloud.js';
 import { auditCicd } from './cicd.js';
 import { auditMobile } from './mobile.js';
 import { auditWeb3 } from './web3.js';
+import { auditXpathSsi } from './xpath-ssi.js';
+import { auditTiming } from './timing.js';
+import { auditJwtAdvanced } from './jwt-advanced.js';
+import { auditCsti } from './csti.js';
+import { auditServiceWorker } from './service-worker.js';
+import { auditPaddingOracle } from './padding-oracle.js';
 
 export const LOCAL_MODULES = [
   { name: 'Code Secrets', value: 'secrets', fn: auditSecrets },
@@ -52,6 +58,12 @@ export const LOCAL_MODULES = [
   { name: 'CI/CD Pipeline', value: 'cicd', fn: auditCicd },
   { name: 'Mobile Security', value: 'mobile', fn: auditMobile },
   { name: 'Web3 / Smart Contracts', value: 'web3', fn: auditWeb3 },
+  { name: 'XPath / SSI Injection', value: 'xpath', fn: auditXpathSsi },
+  { name: 'Timing Side-Channels', value: 'timing', fn: auditTiming },
+  { name: 'JWT Advanced (kid, JWK, jku)', value: 'jwtadv', fn: auditJwtAdvanced },
+  { name: 'Client-Side Template Injection (CSTI)', value: 'csti', fn: auditCsti },
+  { name: 'Service Worker / WebRTC', value: 'sworker', fn: auditServiceWorker },
+  { name: 'Padding / Compression Oracle', value: 'padding', fn: auditPaddingOracle },
 ];
 
 export async function runLocalAudit(projectPath, spinner, modules = null) {
