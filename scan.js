@@ -6,6 +6,7 @@ import { runProbe } from './src/remote/probe.js';
 import { scanXxeRemote, scanOauthRemote, scanAccessControlRemote, scanWebCacheDeception, scanParameterPollution, scanFileUpload, scanDomBased, scanHttp2 } from './src/remote/portswigger.js';
 import { scanSamlRemote, scanLdapRemote, scanMfaBypass, scanWebsocketReplay, scanPasswordReset, scanCsrfRemote, scanDanglingDns, scanCloudRemote } from './src/remote/advanced.js';
 import { scanSsrfBypassChains, scanJwtRemoteAdvanced, scanGrpc, scanOpenApi, scanWebrtc, scanStoredDomXss, scanSsiRemote, scanXpathRemote, scanTimingRemote } from './src/remote/complete.js';
+import { scanLlmRemote, scanCssInjectionRemote, scanPostMessageRemote, scanEsiRemote, scanHttp3, scanHpackBomb, scanSmtpRemote, scanDkimReplay } from './src/remote/modern.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
   const target = new URL(url);
@@ -65,6 +66,13 @@ export async function runRemoteScan(url, spinner, modules = null) {
     { name: 'SSI Injection Remote', value: 'ssi', fn: () => scanSsiRemote(origin, spinner) },
     { name: 'XPath Injection Remote', value: 'xpath', fn: () => scanXpathRemote(origin, spinner) },
     { name: 'Timing Side-Channel', value: 'timing', fn: () => scanTimingRemote(origin, spinner) },
+    { name: 'AI/LLM Prompt Injection', value: 'llmai', fn: () => scanLlmRemote(origin, spinner) },
+    { name: 'CSS Injection/Exfiltration', value: 'css', fn: () => scanCssInjectionRemote(origin, spinner) },
+    { name: 'PostMessage/BroadcastChannel', value: 'postmsg', fn: () => scanPostMessageRemote(origin, spinner) },
+    { name: 'ESI Injection (CDN)', value: 'esi', fn: () => scanEsiRemote(origin, spinner) },
+    { name: 'HTTP/3 QUIC (Modern)', value: 'h3', fn: () => scanHttp3(origin, spinner) },
+    { name: 'HPACK Bomb / Header Overflow', value: 'hpack', fn: () => scanHpackBomb(origin, spinner) },
+    { name: 'SMTP / DKIM Replay', value: 'smtp', fn: () => scanSmtpRemote(origin, spinner) },
   ];
 
   const toRun = modules ? allModules.filter((m) => modules.includes(m.value)) : allModules;

@@ -30,6 +30,13 @@ import { auditJwtAdvanced } from './jwt-advanced.js';
 import { auditCsti } from './csti.js';
 import { auditServiceWorker } from './service-worker.js';
 import { auditPaddingOracle } from './padding-oracle.js';
+import { auditLlmAi } from './llm-ai.js';
+import { auditCssInjection } from './css-injection.js';
+import { auditPostMessage } from './postmessage.js';
+import { auditElectron } from './electron.js';
+import { auditWebauthn } from './webauthn.js';
+import { auditSupplyChainAdvanced } from './supply-chain-advanced.js';
+import { auditClientProto } from './client-proto.js';
 
 export const LOCAL_MODULES = [
   { name: 'Code Secrets', value: 'secrets', fn: auditSecrets },
@@ -64,6 +71,13 @@ export const LOCAL_MODULES = [
   { name: 'Client-Side Template Injection (CSTI)', value: 'csti', fn: auditCsti },
   { name: 'Service Worker / WebRTC', value: 'sworker', fn: auditServiceWorker },
   { name: 'Padding / Compression Oracle', value: 'padding', fn: auditPaddingOracle },
+  { name: 'AI/LLM Prompt Injection', value: 'llmai', fn: auditLlmAi },
+  { name: 'CSS Injection/Exfiltration', value: 'css', fn: auditCssInjection },
+  { name: 'PostMessage / BroadcastChannel', value: 'postmsg', fn: auditPostMessage },
+  { name: 'Electron / React Native', value: 'electron', fn: auditElectron },
+  { name: 'WebAuthn / Passkeys', value: 'passkey', fn: auditWebauthn },
+  { name: 'Supply Chain (dep confusion, lockfile)', value: 'supply', fn: auditSupplyChainAdvanced },
+  { name: 'Client-Side Proto Pollution Gadgets', value: 'cproto', fn: auditClientProto },
 ];
 
 export async function runLocalAudit(projectPath, spinner, modules = null) {
