@@ -23,7 +23,7 @@
 
 ## What is RedGun?
 
-RedGun is a security auditing CLI tool that finds vulnerabilities in your web applications. It includes **51 security modules** covering techniques from [HackTricks](https://book.hacktricks.wiki), [PortSwigger Web Security Academy](https://portswigger.net/web-security), [Katana](https://github.com/projectdiscovery/katana), and [httpx](https://github.com/projectdiscovery/httpx). Two modes:
+RedGun is a security auditing CLI tool that finds vulnerabilities in your web applications. It includes **51 security modules** covering techniques from modern techniques. Two modes:
 
 **Remote scan** (black-box): Give it a URL. It crawls with Katana-style JS parsing, fingerprints with httpx-style probing, then tests — XSS, SQLi, SSRF, CORS, XXE, OAuth, IDOR, cache deception, DOM-based, HTTP smuggling, CRLF, parameter pollution, file upload, and more.
 
