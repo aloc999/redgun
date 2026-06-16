@@ -1,0 +1,67 @@
+name: 'RedGun Security Audit'
+description: 'Black-box & white-box security auditor with HackTricks techniques'
+author: 'aloc999'
+branding:
+  icon: 'shield'
+  color: 'red'
+
+inputs:
+  path:
+    description: 'Project path to audit'
+    default: '.'
+  min-score:
+    description: 'Minimum score required to pass (0-100)'
+    default: '70'
+  fail-on-score:
+    description: 'Fail the workflow if score is below min-score'
+    default: 'true'
+  comment-pr:
+    description: 'Post a comment on pull requests'
+    default: 'true'
+  update-badge:
+    description: 'Update the security badge file on push'
+    default: 'true'
+  upload-sarif:
+    description: 'Upload SARIF findings to GitHub Code Scanning'
+    default: 'true'
+  badge-path:
+    description: 'Path to the badge JSON file'
+    default: '.github/redgun-badge.json'
+  github-token:
+    description: 'Token used to post comments and commit the badge'
+    default: ${{ github.token }}
+
+outputs:
+  score:
+    description: 'Security score from 0 to 100'
+  grade:
+    description: 'Grade from A to F'
+  total-findings:
+    description: 'Total number of findings'
+  critical-findings:
+    description: 'Number of critical findings'
+  high-findings:
+    description: 'Number of high severity findings'
+  report-path:
+    description: 'Absolute path to the JSON report file'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install RedGun
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        npm ci --production 2>/dev/null || npm install --production
+
+    - name: Run Audit
+      id: audit
+      shell: bash
+      run: |
+        cd ${{ github.workspace }}
+        node ${{ github.action_path }}/bin/redgun.js audit ${{ inputs.path }} --ci --min-score ${{ inputs.min-score }} --sarif || true

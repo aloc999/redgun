@@ -1,0 +1,11 @@
+# Ignore translation files
+**/i18n/**
+**/locales/**
+
+# Ignore test fixtures
+**/fixtures/**
+**/test-data/**
+
+# Ignore by pattern
+*.locale.*
+*.min.js
