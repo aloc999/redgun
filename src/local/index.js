@@ -38,6 +38,7 @@ import { auditWebauthn } from './webauthn.js';
 import { auditSupplyChainAdvanced } from './supply-chain-advanced.js';
 import { auditClientProto } from './client-proto.js';
 import { auditRemainingVulns } from './remaining-vulns.js';
+import { runCustomDetectors, runTaintAnalysis } from '../core/custom-detector.js';
 
 export const LOCAL_MODULES = [
   { name: 'Code Secrets', value: 'secrets', fn: auditSecrets },
@@ -95,4 +96,10 @@ export async function runLocalAudit(projectPath, spinner, modules = null) {
       spinner.text = `Error in ${mod.name}: ${err.message}`;
     }
   }
+
+  spinner.text = 'Running taint analysis...';
+  await runTaintAnalysis(projectPath, spinner);
+
+  spinner.text = 'Running custom detectors...';
+  runCustomDetectors(projectPath, spinner);
 }

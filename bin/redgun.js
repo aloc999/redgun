@@ -308,6 +308,108 @@ program
     }
   });
 
+program
+  .command('repl')
+  .description('Interactive REPL for live testing')
+  .argument('[url]', 'Target URL')
+  .action(async (url) => {
+    printBanner();
+    const { startRepl } = await import('../src/core/repl.js');
+    await startRepl(url || '');
+  });
+
+program
+  .command('poc')
+  .description('Generate PoC scripts')
+  .action(async () => {
+    printBanner();
+    const { generatePocs } = await import('../src/core/poc-generator.js');
+    const findings = getFindings();
+    if (findings.length === 0) { console.log(chalk.yellow('  No findings. Run a scan first.\n')); return; }
+    const paths = generatePocs();
+    const { writeFileSync } = await import('fs');
+    console.log(chalk.green(`\n  Generated ${paths.length} PoCs → ./scans/pocs/\n`));
+  });
+
+program
+  .command('graph')
+  .description('Export D3.js asset graph')
+  .argument('[url]', 'Target URL')
+  .action(async (url) => {
+    printBanner();
+    const { exportAssetGraph } = await import('../src/core/monitor.js');
+    const path = await exportAssetGraph(url || 'target');
+    console.log(chalk.green(`\n  Asset graph: ${path}\n`));
+  });
+
+program
+  .command('detector')
+  .description('Manage custom detectors')
+  .argument('[action]', 'add | list | remove')
+  .option('--name <name>', 'Detector name')
+  .option('--pattern <regex>', 'Detection pattern')
+  .option('--severity <severity>', 'critical | high | medium | low | info')
+  .action(async (action, opts) => {
+    const { addDetector, removeDetector, listDetectors } = await import('../src/core/custom-detector.js');
+    if (action === 'list') {
+      const d = listDetectors();
+      console.log(d.length ? d.map(x => `  ${x.name} [${x.severity}]`).join('\n') + '\n' : '  No detectors.\n');
+    } else if (action === 'add' && opts.name && opts.pattern) {
+      addDetector(opts.name, opts.pattern, opts.severity || 'medium');
+      console.log(chalk.green(`\n  Detector '${opts.name}' added.\n`));
+    } else if (action === 'remove' && opts.name) {
+      removeDetector(opts.name);
+      console.log(chalk.green(`\n  Removed.\n`));
+    } else { console.log(chalk.gray('\n  Usage: redgun detector add --name "test" --pattern "secret_key" --severity high\n')); }
+  });
+
+program
+  .command('har')
+  .description('Export HTTP Archive for Burp/Caido')
+  .argument('[url]', 'Target URL')
+  .action(async (url) => {
+    printBanner();
+    if (!url) { const a = await inquirer.prompt([{ type: 'input', name: 'url', message: 'URL:', validate: v => v.startsWith('http') }]); url = a.url; }
+    const { generateHar } = await import('../src/core/integrations.js');
+    const path = await generateHar(url);
+    console.log(chalk.green(`\n  HAR: ${path}\n`));
+  });
+
+program
+  .command('caido')
+  .description('Export findings for Caido')
+  .argument('[url]', 'Target URL')
+  .action(async (url) => {
+    printBanner();
+    const { exportCaido } = await import('../src/core/integrations.js');
+    const path = await exportCaido(url || 'https://target.com');
+    console.log(chalk.green(`\n  Caido: ${path}\n`));
+  });
+
+program
+  .command('watch')
+  .description('Continuous monitoring')
+  .argument('<url>', 'Target URL')
+  .option('--interval <minutes>', 'Interval minutes', '60')
+  .action(async (url, opts) => {
+    printBanner();
+    const { startMonitor } = await import('../src/core/monitor.js');
+    const spinner = ora('Starting...').start();
+    await startMonitor(url, parseInt(opts.interval, 10), spinner);
+    spinner.succeed('Monitoring');
+    console.log(chalk.gray(`  Every ${opts.interval}m. Ctrl+C to stop.\n`));
+  });
+
+program
+  .command('h1-scope')
+  .description('Parse HackerOne scope JSON')
+  .argument('<file>', 'Scope file')
+  .action(async (file) => {
+    printBanner();
+    const { parseH1Scope } = await import('../src/core/h1-scope.js');
+    parseH1Scope(file);
+  });
+
 if (process.argv.length <= 2) {
   printBanner();
   inquirer.prompt([{

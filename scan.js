@@ -10,6 +10,7 @@ import { scanLlmRemote, scanCssInjectionRemote, scanPostMessageRemote, scanEsiRe
 import { scanPortScanner, scanDnsAxfr, scanS3Buckets, scanResponseSplitting, scanXssiRemote, scanTabnabbing, scanSRI, scanOpenGraphInjection, scanCookieTossing } from './src/remote/remaining.js';
 import { validateFindings } from './src/core/validator.js';
 import { buildAttackChains } from './src/core/chains.js';
+import { discoverAiChains } from './src/core/ai-chains.js';
 import { runBrowserEngine } from './src/remote/browser.js';
 import { saveCheckpoint, loadCheckpoint, clearCheckpoint, fuzzEndpoints, exportBurpXml } from './src/core/advanced-features.js';
 import { runConcurrently } from './src/core/concurrent.js';
@@ -128,6 +129,9 @@ export async function runRemoteScan(url, spinner, modules = null) {
 
   spinner.text = '[Chains] Building attack chains...';
   await buildAttackChains(origin, spinner);
+
+  spinner.text = '[AI Chains] Discovering advanced chains...';
+  await discoverAiChains(origin, spinner);
 
   clearCheckpoint();
 
