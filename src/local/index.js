@@ -37,6 +37,7 @@ import { auditElectron } from './electron.js';
 import { auditWebauthn } from './webauthn.js';
 import { auditSupplyChainAdvanced } from './supply-chain-advanced.js';
 import { auditClientProto } from './client-proto.js';
+import { auditRemainingVulns } from './remaining-vulns.js';
 
 export const LOCAL_MODULES = [
   { name: 'Code Secrets', value: 'secrets', fn: auditSecrets },
@@ -78,6 +79,7 @@ export const LOCAL_MODULES = [
   { name: 'WebAuthn / Passkeys', value: 'passkey', fn: auditWebauthn },
   { name: 'Supply Chain (dep confusion, lockfile)', value: 'supply', fn: auditSupplyChainAdvanced },
   { name: 'Client-Side Proto Pollution Gadgets', value: 'cproto', fn: auditClientProto },
+  { name: 'Mass Assignment, XSSI, Tabnabbing, Cookie Tossing, Type Confusion, Response Splitting, SQL Trunc, SRI, OG Injection', value: 'remaining', fn: auditRemainingVulns },
 ];
 
 export async function runLocalAudit(projectPath, spinner, modules = null) {

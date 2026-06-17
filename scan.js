@@ -7,6 +7,7 @@ import { scanXxeRemote, scanOauthRemote, scanAccessControlRemote, scanWebCacheDe
 import { scanSamlRemote, scanLdapRemote, scanMfaBypass, scanWebsocketReplay, scanPasswordReset, scanCsrfRemote, scanDanglingDns, scanCloudRemote } from './src/remote/advanced.js';
 import { scanSsrfBypassChains, scanJwtRemoteAdvanced, scanGrpc, scanOpenApi, scanWebrtc, scanStoredDomXss, scanSsiRemote, scanXpathRemote, scanTimingRemote } from './src/remote/complete.js';
 import { scanLlmRemote, scanCssInjectionRemote, scanPostMessageRemote, scanEsiRemote, scanHttp3, scanHpackBomb, scanSmtpRemote, scanDkimReplay } from './src/remote/modern.js';
+import { scanPortScanner, scanDnsAxfr, scanS3Buckets, scanResponseSplitting, scanXssiRemote, scanTabnabbing, scanSRI, scanOpenGraphInjection, scanCookieTossing } from './src/remote/remaining.js';
 import { validateFindings } from './src/core/validator.js';
 import { buildAttackChains } from './src/core/chains.js';
 import { runBrowserEngine } from './src/remote/browser.js';
@@ -80,6 +81,15 @@ export async function runRemoteScan(url, spinner, modules = null) {
     { name: 'HTTP/3 QUIC (Modern)', value: 'h3', fn: () => scanHttp3(origin, spinner) },
     { name: 'HPACK Bomb / Header Overflow', value: 'hpack', fn: () => scanHpackBomb(origin, spinner) },
     { name: 'SMTP / DKIM Replay', value: 'smtp', fn: () => scanSmtpRemote(origin, spinner) },
+    { name: 'Port Scanner + Banners', value: 'ports', fn: () => scanPortScanner(hostname, spinner) },
+    { name: 'DNS Zone Transfer (AXFR)', value: 'axfr', fn: () => scanDnsAxfr(hostname, spinner) },
+    { name: 'S3 Bucket Enumeration', value: 's3', fn: () => scanS3Buckets(hostname, spinner) },
+    { name: 'Response Splitting', value: 'respsplit', fn: () => scanResponseSplitting(origin, spinner) },
+    { name: 'XSSI / JSON Hijacking', value: 'xssi', fn: () => scanXssiRemote(origin, spinner) },
+    { name: 'Tabnabbing', value: 'tabnab', fn: () => scanTabnabbing(origin, spinner) },
+    { name: 'Subresource Integrity (SRI)', value: 'sri', fn: () => scanSRI(origin, spinner) },
+    { name: 'Open Graph Injection', value: 'og', fn: () => scanOpenGraphInjection(origin, spinner) },
+    { name: 'Cookie Tossing', value: 'cookietoss', fn: () => scanCookieTossing(origin, spinner) },
   ];
 
   const toRun = modules ? allModules.filter((m) => modules.includes(m.value)) : allModules;

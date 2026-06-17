@@ -16,7 +16,8 @@ import { runLocalAudit, LOCAL_MODULES } from '../src/local/index.js';
 import { runRemoteScan } from '../scan.js';
 import { createSession, listProfiles, loadProfile } from '../src/core/session.js';
 import { setProxy } from '../src/core/proxy.js';
-import { diffScans, exportBurpXml } from '../src/core/advanced-features.js';
+import { diffScans, exportBurpXml, setLogLevel, setCustomWordlist, setWebhook, generatePdf, sendWebhook, log } from '../src/core/advanced-features.js';
+import { setRateLimit } from '../src/utils/fetch.js';
 import { getFindings } from '../src/core/findings.js';
 
 const program = new Command();
@@ -43,6 +44,11 @@ program
   .option('--fuzz', 'Enable wordlist fuzzing')
   .option('--burp', 'Export findings as Burp XML')
   .option('--resume', 'Resume last interrupted scan')
+  .option('--rate <rps>', 'Requests per second (default: 5)')
+  .option('--wordlist <file>', 'Custom wordlist for fuzzer')
+  .option('--webhook <url>', 'Discord/Slack webhook for notifications')
+  .option('--log-level <level>', 'Log level: debug, info, warn, error, quiet')
+  .option('--pdf', 'Generate PDF report')
   .action(async (url, options) => {
     printBanner();
     showDisclaimer();
@@ -50,6 +56,25 @@ program
     if (options.proxy) {
       setProxy(options.proxy);
       console.log(chalk.gray(`  Proxy: ${options.proxy}`));
+    }
+
+    if (options.rate) {
+      setRateLimit(parseInt(options.rate, 10));
+      console.log(chalk.gray(`  Rate limit: ${options.rate} req/s`));
+    }
+
+    if (options.wordlist) {
+      setCustomWordlist(options.wordlist);
+      console.log(chalk.gray(`  Wordlist: ${options.wordlist}`));
+    }
+
+    if (options.webhook) {
+      setWebhook(options.webhook);
+      console.log(chalk.gray(`  Webhook: configured`));
+    }
+
+    if (options.logLevel) {
+      setLogLevel(options.logLevel);
     }
 
     const spinner = ora('Preparing...').start();
@@ -101,6 +126,22 @@ program
 
     if (options.burp) {
       console.log(chalk.gray(`  Burp export: ./scans/burp-export.xml`));
+    }
+
+    if (options.pdf) {
+      const pdfPath = await generatePdf(
+        { score, grade, totalFindings: getFindings().length, findings: getFindings(), url },
+        `./scans/redgun-report-${Date.now()}.pdf`
+      );
+      console.log(chalk.gray(`  PDF report: ${pdfPath}`));
+    }
+
+    if (options.webhook) {
+      await sendWebhook({
+        url, score, grade, totalFindings: getFindings().length,
+        critical: getFindings().filter(f => f.severity === 'CRITICAL').length,
+      });
+      console.log(chalk.gray('  Webhook notification sent'));
     }
 
     console.log('');

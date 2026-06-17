@@ -1,6 +1,6 @@
 {
   "name": "redgun-security",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Black-box & white-box security auditor for web applications with HackTricks techniques",
   "type": "module",
   "main": "scan.js",

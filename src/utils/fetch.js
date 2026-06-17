@@ -5,11 +5,14 @@ import { getActiveSession } from '../core/session.js';
 import { getProxyUrl } from '../core/proxy.js';
 
 const RATE_LIMIT = 5;
+let rateLimit = RATE_LIMIT;
 let lastRequestTime = 0;
+
+export function setRateLimit(rps) { rateLimit = rps; lastRequestTime = 0; }
 
 async function waitForSlot() {
   const now = Date.now();
-  const minInterval = 1000 / RATE_LIMIT;
+  const minInterval = 1000 / rateLimit;
   const timeSinceLast = now - lastRequestTime;
 
   if (timeSinceLast < minInterval) {
