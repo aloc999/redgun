@@ -74,40 +74,41 @@ export async function diffScans(scanA, scanB, spinner) {
 }
 
 export async function fuzzEndpoints(origin, spinner) {
-  const wordlist = [
-    'admin', 'api', 'backup', 'config', 'dashboard', 'debug', 'dev', 'login', 'register',
-    'test', 'wp-admin', 'uploads', 'assets', 'static', 'css', 'js', 'images', 'img',
-    'docs', 'documentation', 'downloads', 'logs', 'temp', 'tmp', 'cache', 'old',
-    'backup.zip', 'backup.sql', 'dump.sql', 'database.sql', 'db.sql',
-    'admin.php', 'login.php', 'config.php', 'info.php', 'test.php',
-    'console', 'graphql', 'graphiql', 'swagger', 'api-docs', 'openapi',
-    'actuator', 'actuator/health', 'actuator/env', 'actuator/mappings',
-    'wp-json', 'wp-content', 'wp-includes', 'xmlrpc.php',
-    '.env', '.env.backup', '.env.local', '.env.production',
-    '.git/config', '.git/HEAD', '.DS_Store', '.htaccess',
-    'phpmyadmin', 'phpinfo.php', 'server-status', 'server-info',
-    'sitemap.xml', 'robots.txt', 'crossdomain.xml', 'security.txt',
-    'web.config', 'package.json', 'package-lock.json', 'composer.json',
-    '.well-known/security.txt', '.well-known/openid-configuration',
-    'api/v1', 'api/v2', 'api/v3', 'api/auth', 'api/users', 'api/admin',
-    'v1', 'v2', 'rest', 'rest/api', 'api/rest',
-    'jenkins', 'gitlab', 'sonarqube', 'nexus', 'artifactory',
-    'monitoring', 'metrics', 'health', 'status', 'healthcheck',
-  ];
+  const wordlist = customWordlist
+    ? (await import('fs').then(fs => fs.readFileSync(customWordlist, 'utf-8').split('\n').filter(Boolean).slice(0, 200)))
+    : [
+      'admin', 'api', 'backup', 'config', 'dashboard', 'debug', 'dev', 'login', 'register',
+      'test', 'wp-admin', 'uploads', 'assets', 'static', 'css', 'js', 'images', 'img',
+      'docs', 'documentation', 'downloads', 'logs', 'temp', 'tmp', 'cache', 'old',
+      'backup.zip', 'backup.sql', 'dump.sql', 'database.sql', 'db.sql',
+      'admin.php', 'login.php', 'config.php', 'info.php', 'test.php',
+      'console', 'graphql', 'graphiql', 'swagger', 'api-docs', 'openapi',
+      'actuator', 'actuator/health', 'actuator/env', 'actuator/mappings',
+      'wp-json', 'wp-content', 'wp-includes', 'xmlrpc.php',
+      '.env', '.env.backup', '.env.local', '.env.production',
+      '.git/config', '.git/HEAD', '.DS_Store', '.htaccess',
+      'phpmyadmin', 'phpinfo.php', 'server-status', 'server-info',
+      'sitemap.xml', 'robots.txt', 'crossdomain.xml', 'security.txt',
+      'web.config', 'package.json', 'package-lock.json', 'composer.json',
+      '.well-known/security.txt', '.well-known/openid-configuration',
+      'api/v1', 'api/v2', 'api/v3', 'api/auth', 'api/users', 'api/admin',
+      'v1', 'v2', 'rest', 'rest/api', 'api/rest',
+      'jenkins', 'gitlab', 'sonarqube', 'nexus', 'artifactory',
+      'monitoring', 'metrics', 'health', 'status', 'healthcheck',
+    ];
 
   let found = 0;
   for (let i = 0; i < wordlist.length; i++) {
-    const path = wordlist[i];
+    const path = wordlist[i].trim();
+    if (!path) continue;
     if (i % 5 === 0) spinner.text = `[Fuzzer] ${found} found — ${path}`;
 
     try {
       const resp = await fetchText(`${origin}/${path}`, {}, 3000);
       if (resp.status !== 404 && resp.status !== 500 && resp.body.length > 50) {
         found++;
-
         const severity = /\benv\b|\.git|backup\.sql|phpmyadmin|actuator|jenkins/i.test(path)
           ? 'HIGH' : /admin|config|debug|console/i.test(path) ? 'MEDIUM' : 'LOW';
-
         addFinding(severity, 'Fuzzer', `Discovered: /${path} (${resp.status})`,
           `${origin}/${path} returned ${resp.status} (${resp.body.length}B)`,
           /admin|config|backup/i.test(path) ? 'Restrict access to this path. Requires authentication.' : 'Review this path for sensitive information exposure');
@@ -206,49 +207,3 @@ export async function generatePdf(report, outputPath) {
   return outputPath.replace('.pdf', '.html');
 }
 
-export async function fuzzEndpoints(origin, spinner) {
-  const wordlist = customWordlist
-    ? (await import('fs').then(fs => fs.readFileSync(customWordlist, 'utf-8').split('\n').filter(Boolean).slice(0, 200)))
-    : [
-      'admin', 'api', 'backup', 'config', 'dashboard', 'debug', 'dev', 'login', 'register',
-      'test', 'wp-admin', 'uploads', 'assets', 'static', 'css', 'js', 'images', 'img',
-      'docs', 'documentation', 'downloads', 'logs', 'temp', 'tmp', 'cache', 'old',
-      'backup.zip', 'backup.sql', 'dump.sql', 'database.sql', 'db.sql',
-      'admin.php', 'login.php', 'config.php', 'info.php', 'test.php',
-      'console', 'graphql', 'graphiql', 'swagger', 'api-docs', 'openapi',
-      'actuator', 'actuator/health', 'actuator/env', 'actuator/mappings',
-      'wp-json', 'wp-content', 'wp-includes', 'xmlrpc.php',
-      '.env', '.env.backup', '.env.local', '.env.production',
-      '.git/config', '.git/HEAD', '.DS_Store', '.htaccess',
-      'phpmyadmin', 'phpinfo.php', 'server-status', 'server-info',
-      'sitemap.xml', 'robots.txt', 'crossdomain.xml', 'security.txt',
-      'web.config', 'package.json', 'package-lock.json', 'composer.json',
-      '.well-known/security.txt', '.well-known/openid-configuration',
-      'api/v1', 'api/v2', 'api/v3', 'api/auth', 'api/users', 'api/admin',
-      'v1', 'v2', 'rest', 'rest/api', 'api/rest',
-      'jenkins', 'gitlab', 'sonarqube', 'nexus', 'artifactory',
-      'monitoring', 'metrics', 'health', 'status', 'healthcheck',
-    ];
-
-  let found = 0;
-  for (let i = 0; i < wordlist.length; i++) {
-    const path = wordlist[i].trim();
-    if (!path) continue;
-    if (i % 5 === 0) spinner.text = `[Fuzzer] ${found} found — ${path}`;
-
-    try {
-      const resp = await fetchText(`${origin}/${path}`, {}, 3000);
-      if (resp.status !== 404 && resp.status !== 500 && resp.body.length > 50) {
-        found++;
-        const severity = /\benv\b|\.git|backup\.sql|phpmyadmin|actuator|jenkins/i.test(path)
-          ? 'HIGH' : /admin|config|debug|console/i.test(path) ? 'MEDIUM' : 'LOW';
-        addFinding(severity, 'Fuzzer', `Discovered: /${path} (${resp.status})`,
-          `${origin}/${path} returned ${resp.status} (${resp.body.length}B)`,
-          /admin|config|backup/i.test(path) ? 'Restrict access to this path. Requires authentication.' : 'Review this path for sensitive information exposure');
-      }
-    } catch {}
-  }
-
-  spinner.text = `Fuzzer complete: ${found} endpoints found`;
-  return found;
-}
