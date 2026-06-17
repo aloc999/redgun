@@ -16,110 +16,190 @@
 <p align="center">
   <a href="https://github.com/aloc999/redgun/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D18-green" alt="Node">
-  <img src="https://img.shields.io/badge/modules-51-ff4444" alt="Modules">
+  <img src="https://img.shields.io/badge/modules-100-ff4444" alt="Modules">
+  <img src="https://img.shields.io/badge/version-3.0.0-critical" alt="Version">
 </p>
 
 <br>
 
 ## What is RedGun?
 
-RedGun is a security auditing CLI tool that finds vulnerabilities in your web applications. It includes **51 security modules** covering techniques from modern techniques. Two modes:
+RedGun is a comprehensive security auditing CLI tool with ~100 modules. Covers the full bug bounty workflow: authenticated scanning, browser engine (Puppeteer), attack chain chaining, validation engine with false-positive elimination, proxy support (Burp/Zap), concurrent execution, and more. Built for actual bounty hunting, not just reporting.
 
-**Remote scan** (black-box): Give it a URL. It crawls with Katana-style JS parsing, fingerprints with httpx-style probing, then tests — XSS, SQLi, SSRF, CORS, XXE, OAuth, IDOR, cache deception, DOM-based, HTTP smuggling, CRLF, parameter pollution, file upload, and more.
+**Remote scan** (black-box): Browser engine launches Chromium to capture network traffic, WebSocket, postMessage, DOM XSS. Then 60+ probes — XSS, SQLi, SSRF, XXE, OAuth, SAML, LDAP, IDOR, cache deception, HTTP smuggling, CRLF, parameter pollution, file upload, NoSQL, gRPC, AI/LLM injection, and more.
 
-**Local audit** (white-box): Point it at your project directory. It reads your source code checking for secrets, SSTI, XXE, insecure deserialization, prototype pollution, JWT attacks, OAuth flaws, IDOR, business logic, command injection, weak crypto, and more.
+**Local audit** (white-box): Scans 33 vulnerability classes in source code — secrets, SSTI, XXE, deserialization, proto pollution, JWT (kid/JWK/none), OAuth, IDOR, business logic, SAML, LDAP, CSRF, ATO, cloud misconfigs, CI/CD, mobile, smart contracts, CSS injection, postMessage, Electron/RN, WebAuthn, supply chain, and more.
+
+Built by [@aloc999 (Hashemi)](https://github.com/aloc999).
 
 <br>
 
 ## Quick start
 
 ```bash
-# Install globally
 npm install -g redgun-security
 
-# Interactive mode
-redgun
-
-# Or run directly
-redgun scan https://target.com    # Remote scan (black-box)
-redgun audit .                    # Local audit (white-box)
-redgun audit . --ci               # CI mode (exit code 0 or 1)
-redgun history                    # View saved reports
-redgun modules                    # List all modules
+redgun                                      # Interactive mode
+redgun scan https://target.com              # Remote scan
+redgun scan --proxy http://127.0.0.1:8080   # With Burp/Zap proxy
+redgun scan --auth myprofile                # Authenticated scan
+redgun scan --scope targets.txt             # Multi-target
+redgun audit .                              # Local audit
+redgun audit . --ci                         # CI mode
+redgun diff scan1.json scan2.json           # Diff two scans
+redgun auth add --name myprofile ...        # Manage auth profiles
+redgun auth list                            # List profiles
+redgun modules                              # List all modules
 ```
 
 <br>
 
-## Remote Scan Modules (33 — Black-box)
+## Remote Scan Modules (51 — Black-box)
 
 | Module | What it tests |
 |---|---|
-| **Probe & Fingerprint** | Status code, title, technologies (40+), CDN/WAF detection, favicon hash, response time, virtual host discovery |
-| **Crawl & Extract** | JS file parsing, endpoint extraction, form discovery, parameter mining, email harvesting, secret detection in bundles |
-| **HTTP Headers** | Missing CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP, CORP, COEP |
-| **Exposed Files** | `.env`, `.git/config`, `package.json`, `.DS_Store`, source maps, actuator, swagger, phpinfo, Docker files, backups |
-| **Secrets Detection** | API keys (AWS, Stripe, Firebase, Supabase, OpenAI, Anthropic), tokens, passwords in page source |
-| **XSS Reflected** | 6 payloads × 14 parameters, DOM-based indicators |
-| **SQL Injection** | Error-based, UNION-based, time-based blind across common parameters |
-| **CORS Misconfiguration** | Wildcard + credentials, reflected origin, null origin |
-| **Open Redirect** | 12 redirect parameters tested with external URL |
-| **SSRF** | AWS metadata, internal IPs, localhost, IPv6, decimal IP, file:// protocol |
+| **Browser Engine** | Headless Chromium: DOM XSS injection, network capture, WebSocket, postMessage, localStorage audit, screenshot on alert |
+| **Probe & Fingerprint** | Status code, title, 40+ techs, CDN/WAF, favicon hash, response time, vhost discovery |
+| **Crawl & Extract** | JS file parsing, endpoint extraction, form discovery, parameter mining, email harvesting, secret detection |
+| **HTTP Headers** | CSP, HSTS, X-Frame-Options, X-Content-Type, Referrer-Policy, Permissions-Policy, COOP, CORP, COEP |
+| **Exposed Files** | .env, .git, package.json, .DS_Store, actuator, swagger, phpinfo, Docker, backups |
+| **Secrets Detection** | AWS, Stripe, Firebase, Supabase, OpenAI, Anthropic, GitHub, Slack, Twilio, Discord in page source |
+| **XSS Reflected** | 6 payloads x 14 parameters, DOM-based indicators |
+| **SQL Injection** | Error-based, UNION-based, time-based blind |
+| **CORS Misconfig** | Wildcard + credentials, reflected origin, null origin |
+| **Open Redirect** | 12 redirect parameters, external URL confirmation |
+| **SSRF** | AWS/GCP metadata, IPv4/IPv6, DNS rebinding, redirect chains, gopher/file protocols |
+| **SSRF Bypass Chains** | Decimal/hex/octal IP, DNS rebinding (nip.io/xip.io), redirect chain, double encoding |
 | **Host Header Injection** | Reflected host, X-Forwarded-Host poisoning |
 | **HTTP Request Smuggling** | CL.TE probe detection |
-| **CRLF Injection** | Header injection via URL encoding variants |
-| **GraphQL Introspection** | Schema exposure via introspection query at 5 endpoints |
-| **Clickjacking** | Missing X-Frame-Options and frame-ancestors CSP |
-| **Cookie Security** | Missing HttpOnly, Secure, SameSite flags |
+| **CRLF Injection** | Header injection via encoding variants |
+| **GraphQL Introspection** | Schema exposure, 5 endpoint queries |
+| **Clickjacking** | X-Frame-Options, frame-ancestors CSP |
+| **Cookie Security** | HttpOnly, Secure, SameSite flags |
 | **HTTP Methods** | TRACE, PUT, DELETE enabled |
-| **Subdomain Enumeration** | 40+ common subdomains, dangerous subdomain detection |
+| **Subdomain Enumeration** | 40+ common subdomains, dangerous detection |
 | **DNS & Email** | SPF, DKIM, DMARC analysis |
-| **Technology Fingerprint** | 40+ frameworks, servers, and services detected |
+| **Technology Fingerprint** | 40+ frameworks, servers, services |
 | **API Discovery** | Common API paths, auth testing |
 | **SSL/TLS Analysis** | HTTP vs HTTPS detection |
 | **Path Traversal / LFI** | Double-encoding, unicode bypass, null byte |
-| **NoSQL Injection** | MongoDB operator injection auth bypass |
-| **WebSocket Security** | Origin validation, authentication checks |
-| **Cache Poisoning** | Unkeyed headers (X-Forwarded-Host, X-Forwarded-Scheme, X-Original-URL) |
-| **Race Conditions** | Detection guidance for concurrent request attacks |
+| **NoSQL Injection** | MongoDB $ne operator auth bypass |
+| **WebSocket Security** | Origin validation, auth checks |
+| **Cache Poisoning** | Unkeyed headers, Web Cache Deception |
+| **Race Conditions** | Concurrent request attack detection |
 | **XXE Injection** | XML entity injection at upload/import/SOAP endpoints |
-| **OAuth Misconfiguration** | redirect_uri validation, OIDC config exposure, implicit flow detection |
-| **Access Control Bypass** | Admin panel exposure, 403 bypass via X-Original-URL/X-Forwarded-For, robots.txt disclosure |
-| **Web Cache Deception** | Static extension cache deception, path normalization inconsistency |
-| **Parameter Pollution** | HTTP Parameter Pollution, null byte truncation, duplicate params |
-| **File Upload Testing** | Upload endpoint discovery, OPTIONS probing |
-| **DOM-Based Vulnerabilities** | DOM sinks (document.write, innerHTML, eval, postMessage), source-to-sink flow |
-| **HTTP/2 Attacks** | H2.CL/H2.TE smuggling indicators, HPACK injection surface |
+| **OAuth Misconfig** | redirect_uri validation, OIDC config, implicit flow |
+| **Access Control Bypass** | Admin panel, 403 bypass via headers, robots.txt |
+| **Web Cache Deception** | Static extension, path normalization |
+| **Parameter Pollution** | HPP, null byte truncation |
+| **File Upload Testing** | Endpoint discovery, OPTIONS probing |
+| **DOM-Based** | DOM sinks, postMessage, source-to-sink |
+| **HTTP/2 Attacks** | H2.CL/H2.TE smuggling, HPACK |
+| **SAML/SSO** | Metadata exposure, unsigned assertion, XSW probe |
+| **LDAP Injection** | Auth bypass via wildcard filters |
+| **MFA Bypass** | Post-MFA path access, OTP rate limiting |
+| **Password Reset** | Email enumeration, Host header, token entropy |
+| **CSRF Remote** | Token detection, cookie-based, SameSite |
+| **Subdomain Takeover** | Dangling CNAME to AWS/Azure/Heroku/GitHub/Netlify/Vercel |
+| **Cloud Metadata SSRF** | AWS/GCP/Azure IMDS probing |
+| **JWT Advanced** | kid/JWK/jku/none/key confusion |
+| **gRPC / OpenAPI** | Reflection enumeration, Swagger schema fuzzing |
+| **Timing Side-Channel** | Login timing differences |
+| **AI/LLM Injection** | Prompt injection, system prompt extraction |
+| **CSS Injection** | Attribute selector exfil, font-face, CSS keylogger |
+| **PostMessage** | Missing origin, BroadcastChannel, wildcard targetOrigin |
+| **ESI Injection** | Edge-Side Includes on CDNs |
+| **HTTP/3 QUIC** | 0-RTT replay, Alt-Svc detection |
+| **HPACK Bomb** | Header table overflow |
 
 <br>
 
-## Local Audit Modules (18 — White-box)
+## Local Audit Modules (33 — White-box)
 
 | Module | What it checks |
 |---|---|
-| **Code Secrets** | 25+ secret patterns (AWS, GitHub, Stripe, OpenAI, Anthropic, Discord, Telegram, npm, etc.) with line numbers |
-| **Environment Files** | `.env` in `.gitignore`, real secrets in `.env.example`, sensitive config exposure |
-| **Dependencies** | `npm audit` for CVEs, supply-chain attack package detection |
-| **Code Vulnerabilities** | SQL injection (template literals), XSS (`v-html`, `dangerouslySetInnerHTML`, `innerHTML`), eval(), ReDoS |
-| **Auth & Middleware** | Rate limiting, CORS wildcards, CSRF protection, session config, JWT expiration, hardcoded passwords |
-| **Headers Config** | CSP/HSTS in Nuxt, Next.js, Vercel, Netlify, Express configs |
-| **SSRF Detection** | User-controlled URLs in fetch/axios/request/http.get/urllib |
+| **Code Secrets** | 25+ secret patterns with line numbers and fix suggestions |
+| **Environment Files** | .env in .gitignore, real secrets in .env.example |
+| **Dependencies** | npm audit for CVEs, supply-chain attack package detection |
+| **Code Vulnerabilities** | SQLi template literals, XSS v-html/innerHTML, eval, ReDoS |
+| **Auth & Middleware** | Rate limiting, CORS, CSRF, session, JWT, hardcoded passwords |
+| **Headers Config** | CSP/HSTS in Nuxt, Next.js, Vercel, Netlify, Express |
+| **SSRF Detection** | User URLs in fetch/axios/request/http.get/urllib |
 | **SSTI Detection** | Jinja2, Twig, Nunjucks, Pug, EJS, Handlebars, Velocity, Freemarker, Thymeleaf |
 | **Insecure Deserialization** | pickle, yaml.load, unserialize, ObjectInputStream, Marshal, BinaryFormatter |
-| **Prototype Pollution** | Object.assign, spread operator, deepmerge, lodash.merge, __proto__ access |
-| **JWT Vulnerabilities** | Algorithm "none", verify disabled, weak secrets, expiration bypass, decode without verify |
-| **Path Traversal / LFI** | User input in file paths, readFile, sendFile, include/require |
-| **Command Injection** | exec, spawn, child_process, system, subprocess with user input, shell interpolation |
-| **Weak Cryptography** | MD5, SHA1, DES, RC4, ECB mode, Math.random, hardcoded keys/IVs |
-| **XXE Detection** | XML parsers without entity disabled, DOMParser, lxml, simplexml with user input |
-| **Access Control / IDOR** | Direct object reference, role from user input, admin headers, ownership checks |
-| **OAuth / OIDC Flaws** | redirect_uri manipulation, missing state, client_secret exposure, token storage |
-| **Business Logic** | Price manipulation, negative quantity, workflow step skipping, race conditions, referral abuse |
+| **Prototype Pollution** | Object.assign, spread, deepmerge, lodash.merge, __proto__ |
+| **JWT Vulnerabilities** | alg none, verify false, weak secrets, expiration bypass |
+| **JWT Advanced** | kid injection, JWK injection, jku SSRF, x5u, key confusion |
+| **Path Traversal / LFI** | readFile, sendFile, include/require with user input |
+| **Command Injection** | exec, spawn, child_process, system, subprocess |
+| **Weak Cryptography** | MD5, SHA1, DES, RC4, ECB, Math.random, hardcoded keys/IVs |
+| **XXE Detection** | DOMParser, lxml, simplexml, LIBXML_NOENT |
+| **Access Control / IDOR** | Direct object ref, role from user input, admin headers |
+| **OAuth / OIDC Flaws** | redirect_uri, missing state, client_secret, implicit flow |
+| **Business Logic** | Price manipulation, negative quantity, workflow skipping, referral abuse |
+| **SAML / SSO** | Signature validation, XSW, NameID injection, audience restriction |
+| **LDAP Injection** | Filter concatenation, auth bypass, TLS/SSL enforcement |
+| **CSRF Analysis** | Token entropy, predictable sources, double submit |
+| **Account Takeover** | Reset token, OTP, MFA bypass, user enumeration |
+| **Cloud Misconfig** | S3 public ACL, IAM wildcards, GCP/Azure creds, Lambda |
+| **CI/CD Pipeline** | pull_request_target, secrets, elevated permissions |
+| **Mobile Security** | API keys, debuggable, ATS, WebView, deep links |
+| **Web3 / Smart Contracts** | Reentrancy, delegatecall, tx.origin, proxy, unchecked |
+| **XPath / SSI** | XPath evaluate/select, SSI directives |
+| **Timing Side-Channels** | String compare, conditional sleep, HMAC oracle |
+| **Client-Side Template Injection** | AngularJS, Vue v-html, React dangerouslySetInnerHTML, Svelte |
+| **Service Worker / WebRTC** | importScripts, fetch listener, cache poisoning, IP leak |
+| **Padding / Compression Oracle** | CBC decrypt errors, CRIME/BREACH, OAEP |
+| **AI/LLM Injection** | System prompt, tool-use, RAG indirect injection |
+| **CSS Injection** | Attribute selector, font-face unicode-range, CSS keylogger |
+| **PostMessage** | Missing origin, BroadcastChannel, wildcard targetOrigin |
+| **Electron / React Native** | contextIsolation, nodeIntegration, shell.openExternal, IPC |
+| **WebAuthn / Passkeys** | Weak challenge, relay attack surface, empty allowCredentials |
+| **Supply Chain** | Dependency confusion, lockfile integrity, postinstall, curl\|bash |
+| **Client-Side Proto Pollution** | Gadget chains, jQuery $.extend, Angular merge, DOM sources |
+
+<br>
+
+## Validation Engine (v2.0+)
+
+After scanning, RedGun automatically validates every finding to eliminate false positives:
+
+| Vuln | Validation Method |
+|---|---|
+| **SQLi** | UNION SELECT probe with DB error detection |
+| **XSS** | Payload reflection check with HTML encoding detection |
+| **SSRF** | Metadata endpoint timing analysis |
+| **JWT** | Forged alg=none token authentication test |
+| **LFI** | /etc/passwd retrieval verification |
+| **Open Redirect** | Follow redirect chain to external URL |
+| **CORS** | Cross-origin request with credential leak check |
+| **NoSQLi** | $ne operator auth bypass confirmation |
+| **Command Injection** | sleep-based timing confirmation |
+
+Each finding gets: confidence score (0-100%), exploitability badge (CONFIRMED/REJECTED/INCONCLUSIVE), and validation note. Findings below 30% confidence are auto-eliminated.
+
+<br>
+
+## Attack Chain Engine (v2.2+)
+
+Automatically chains validated vulnerabilities into complex exploit paths:
+
+| Chain | Impact |
+|---|---|
+| Open Redirect → OAuth Theft → ATO | CRITICAL |
+| XSS → Cookie Steal → Session Hijacking | CRITICAL |
+| SSRF → Cloud Metadata → Credential Dump | CRITICAL |
+| JWT kid → Path Traversal → Key Forge | CRITICAL |
+| SQLi → Password Dump → Credential Stuffing | CRITICAL |
+| NoSQLi → Auth Bypass → IDOR → Mass Extraction | CRITICAL |
+| CORS → CSRF → Privilege Escalation | HIGH |
+| Subdomain Takeover → Cookie Scope → Session Fixation | HIGH |
+
+Each chain includes step-by-step exploitation instructions and confidence scoring.
 
 <br>
 
 ## GitHub Action
-
-Add `.github/workflows/security.yml` to your repo:
 
 ```yaml
 name: Security
@@ -138,142 +218,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: aloc999/redgun@v1
+      - uses: aloc999/redgun@v3
 ```
-
-### Inputs
-
-| Input | Description | Default |
-|---|---|---|
-| `path` | Project path to audit | `.` |
-| `min-score` | Minimum score required to pass (0-100) | `70` |
-| `fail-on-score` | Fail the workflow if score is below min-score | `true` |
-| `comment-pr` | Post a comment on pull requests | `true` |
-| `update-badge` | Update the security badge file on push | `true` |
-| `upload-sarif` | Upload SARIF findings to GitHub Code Scanning | `true` |
-
-### Outputs
-
-| Output | Description |
-|---|---|
-| `score` | Security score from 0 to 100 |
-| `grade` | Grade from A to F |
-| `total-findings` | Total number of findings |
-| `critical-findings` | Number of critical findings |
-| `high-findings` | Number of high severity findings |
 
 <br>
 
 ## Scoring
 
-Every scan produces a security score from 0 to 100, graded A through F.
-
 | Severity | Score impact | Meaning |
 |---|---|---|
-| **Critical** | -15 | Exploitable vulnerability, immediate action required |
+| **Critical** | -15 | Exploitable, immediate action |
 | **High** | -8 | Serious risk, fix soon |
-| **Medium** | -3 | Moderate risk, fix when possible |
+| **Medium** | -3 | Moderate risk |
 | **Low** | -1 | Minor risk |
-| **Info** | 0 | Informational, no action needed |
+| **Info** | 0 | Informational |
 
 <br>
 
 ## Configuration
 
-### CLI options
-
 ```bash
-redgun scan                          # Interactive remote scan
-redgun scan https://target.com       # Direct URL scan
-redgun audit .                       # Audit current directory
-redgun audit /path/to/project        # Audit specific project
-redgun audit . --ci                  # CI mode, exit 1 if score < 70
-redgun audit . --ci --min-score 80   # Custom threshold
-redgun audit . --modules secrets,jwt # Run specific modules only
-redgun audit . --sarif               # Generate SARIF output
-redgun history                       # Browse saved reports
-redgun modules                       # List all modules
+redgun scan                              # Interactive scan
+redgun scan https://target.com           # Direct URL
+redgun scan --proxy http://127.0.0.1:8080  # Burp/Zap proxy
+redgun scan --auth myprofile             # Authenticated scan
+redgun scan --scope targets.txt          # Multi-target
+redgun scan --fuzz                       # Wordlist fuzzing
+redgun scan --burp                       # Burp XML export
+redgun scan --resume                     # Resume last scan
+redgun scan --modules browser,headers    # Specific modules
+redgun audit .                           # Local audit
+redgun audit . --ci --min-score 80       # CI mode
+redgun diff scan1.json scan2.json        # Diff mode
+redgun auth add --name prod --method bearer --token eyJ...   # Save profile
+redgun auth list                         # List profiles
+redgun history                           # View reports
+redgun modules                           # List modules
 ```
-
-### Config file (optional)
-
-Create `redgun.config.js` in your project root:
-
-```js
-export default {
-  url: 'https://your-site.com',
-  ignore: ['Firebase API Key'],
-  ci: {
-    minScore: 70,
-    failOnCritical: true,
-  },
-}
-```
-
-### `.redgunignore` (optional)
-
-Create a `.redgunignore` file to exclude files from local audit:
-
-```
-**/i18n/**
-**/locales/**
-*.locale.*
-```
-
-<br>
-
-## Techniques & Sources
-
-### HackTricks Techniques
-
-- **SSRF** — AWS/GCP metadata, internal IP bypass, DNS rebinding indicators
-- **SSTI** — Template engine detection and exploitation patterns
-- **Insecure Deserialization** — Language-specific gadget chain detection
-- **Prototype Pollution** — Object merge sinks and __proto__ injection
-- **JWT Attacks** — Algorithm confusion, none bypass, key brute-force indicators
-- **HTTP Request Smuggling** — CL.TE/TE.CL probe methodology
-- **Cache Poisoning** — Unkeyed header detection and Web Cache Deception
-- **CRLF Injection** — Header injection via encoding variants
-- **GraphQL** — Introspection, batching, query depth abuse
-- **NoSQL Injection** — MongoDB operator injection ($ne, $gt, $regex)
-- **Host Header Injection** — Password reset poisoning, cache poisoning via Host
-- **Path Traversal** — Double encoding, unicode bypass, null byte truncation
-- **Command Injection** — Shell metacharacter injection patterns
-- **Race Conditions** — Single-packet HTTP/2 attack detection guidance
-- **Open Redirect** — OAuth token theft chain detection
-- **Subdomain Takeover** — Dangling CNAME detection
-- **Weak Cryptography** — Deprecated algorithms and hardcoded key detection
-
-### PortSwigger Web Security Academy Techniques
-
-- **XXE (XML External Entity)** — Entity injection, DTD-based file read, blind OOB XXE, parameter entities
-- **Access Control** — Horizontal/vertical privilege escalation, IDOR, 403 bypass via headers (X-Original-URL, X-Rewrite-URL), referer-based control
-- **OAuth 2.0 Vulnerabilities** — redirect_uri manipulation, state CSRF, implicit flow token theft, client_secret exposure, PKCE bypass
-- **Business Logic** — Price manipulation, negative quantity, workflow step skipping, race condition exploitation, referral abuse, trial abuse
-- **Web Cache Deception** — Static extension deception, path normalization inconsistency, cache key manipulation
-- **DOM-Based Vulnerabilities** — Source-to-sink analysis, document.write, innerHTML, eval, postMessage hijacking
-- **HTTP Parameter Pollution** — Duplicate parameters, server-side truncation, null byte injection
-- **File Upload** — Unrestricted upload, extension bypass, content-type manipulation, polyglot files
-- **HTTP/2 Attacks** — H2.CL smuggling, H2.TE smuggling, HPACK header injection, request tunneling
-
-### Katana (ProjectDiscovery) Techniques
-
-- **JavaScript Crawling** — Parse all JS bundles including lazy-loaded chunks for endpoints
-- **Endpoint Extraction** — API routes, fetch/axios calls, URL patterns from source
-- **Form Discovery** — Automatic form detection with CSRF and sensitive field analysis
-- **Parameter Mining** — Extract all parameters from URLs, forms, and JS source
-- **Secret Extraction** — API keys, tokens, and credentials from JS bundles
-- **Email Harvesting** — Email addresses from page source for social engineering
-
-### httpx (ProjectDiscovery) Techniques
-
-- **Technology Detection** — 40+ technologies fingerprinted (frameworks, CMS, servers, BaaS, analytics)
-- **CDN/WAF Detection** — Cloudflare, AWS CloudFront, Fastly, Akamai, Imperva, Sucuri, Azure, Vercel, Netlify
-- **WAF Fingerprinting** — ModSecurity, Wordfence, F5 BIG-IP, Cloudflare WAF, Incapsula
-- **Favicon Hashing** — MD5 hash for Shodan-style fingerprinting
-- **Virtual Host Discovery** — Host header manipulation to find hidden vhosts
-- **Response Analysis** — Status codes, content-length, response time, title extraction
-- **TLS/Certificate Info** — Protocol detection, certificate validation
 
 <br>
 
@@ -282,44 +263,50 @@ Create a `.redgunignore` file to exclude files from local audit:
 ```
 redgun/
 ├── bin/
-│   └── redgun.js                    # CLI entry point
+│   └── redgun.js                       # CLI entry point
 ├── src/
 │   ├── core/
-│   │   ├── findings.js              # Shared findings store
-│   │   ├── score.js                 # A-F score calculator
+│   │   ├── findings.js                 # Findings store + validation fields
+│   │   ├── score.js                    # A-F score calculator
+│   │   ├── validator.js                # Validation engine (18 vuln types)
+│   │   ├── chains.js                   # Attack chain builder (10 chains)
+│   │   ├── session.js                  # Auth session management + profiles
+│   │   ├── proxy.js                    # Burp/Zap proxy routing
+│   │   ├── waf-bypass.js               # Payload encoding/evasion
+│   │   ├── concurrent.js              # Parallel execution (5 workers)
+│   │   ├── advanced-features.js       # Fuzzer, diff, resume, Burp export
 │   │   └── reporter/
-│   │       ├── console.js           # Terminal output
-│   │       ├── json.js              # JSON + SARIF export
-│   │       └── html.js              # HTML report
-│   ├── local/                       # White-box modules (18)
-│   │   ├── index.js                 # Module orchestrator
-│   │   ├── secrets.js               # Source code secrets
-│   │   ├── env.js                   # .env audit
-│   │   ├── dependencies.js          # npm audit + supply chain
-│   │   ├── code-vulnerabilities.js  # SQLi, XSS, eval, ReDoS
-│   │   ├── auth.js                  # Auth & middleware
-│   │   ├── headers-config.js        # CSP/HSTS config
-│   │   ├── ssrf.js                  # SSRF (HackTricks)
-│   │   ├── ssti.js                  # SSTI (HackTricks)
-│   │   ├── deserialization.js       # Insecure deserialization (HackTricks)
-│   │   ├── prototype-pollution.js   # Prototype pollution (HackTricks)
-│   │   ├── jwt.js                   # JWT vulnerabilities (HackTricks)
-│   │   ├── path-traversal.js        # LFI/path traversal (HackTricks)
-│   │   ├── command-injection.js     # OS command injection (HackTricks)
-│   │   ├── crypto.js               # Weak cryptography (HackTricks)
-│   │   ├── xxe.js                   # XXE detection (PortSwigger)
-│   │   ├── access-control.js        # IDOR/access control (PortSwigger)
-│   │   ├── oauth.js                 # OAuth/OIDC flaws (PortSwigger)
-│   │   └── business-logic.js        # Business logic (PortSwigger)
-│   ├── remote/                      # Black-box enhanced modules
-│   │   ├── crawler.js               # Katana-style JS crawler
-│   │   ├── probe.js                 # httpx-style fingerprinting
-│   │   └── portswigger.js           # PortSwigger remote tests
+│   │       ├── console.js              # Terminal output with validation badges
+│   │       ├── json.js                 # JSON + SARIF export
+│   │       └── html.js                 # HTML report with confidence bars
+│   ├── local/                          # White-box modules (33)
+│   │   ├── index.js                    # Module orchestrator
+│   │   ├── secrets.js, env.js, dependencies.js, auth.js
+│   │   ├── code-vulnerabilities.js, headers-config.js
+│   │   ├── ssrf.js, ssti.js, deserialization.js, prototype-pollution.js
+│   │   ├── jwt.js, jwt-advanced.js
+│   │   ├── path-traversal.js, command-injection.js, crypto.js
+│   │   ├── xxe.js, access-control.js, oauth.js, business-logic.js
+│   │   ├── saml.js, ldap.js, csrf.js, ato.js
+│   │   ├── cloud.js, cicd.js, mobile.js, web3.js
+│   │   ├── xpath-ssi.js, timing.js, csti.js
+│   │   ├── service-worker.js, padding-oracle.js
+│   │   ├── llm-ai.js, css-injection.js, postmessage.js
+│   │   ├── electron.js, webauthn.js
+│   │   ├── supply-chain-advanced.js, client-proto.js
+│   └── remote/                         # Black-box enhanced modules
+│       ├── browser.js                  # Puppeteer: DOM XSS, network, WS, storage
+│       ├── crawler.js                  # Katana-style JS crawler
+│       ├── probe.js                    # httpx-style fingerprinting
+│       ├── portswigger.js              # XXE, OAuth, ACL, WCD, HPP, upload, DOM, H2
+│       ├── advanced.js                 # SAML, LDAP, MFA, WS replay, pw reset, CSRF, takeover, cloud
+│       ├── complete.js                 # SSRF bypass, JWT adv, gRPC, OpenAPI, WebRTC, XSS auto, SSI, XPath, timing
+│       ├── modern.js                   # AI/LLM, CSS, PostMessage, ESI, HTTP/3, HPACK, SMTP
 │   └── utils/
-│       ├── fetch.js                 # HTTP with timeout
-│       └── patterns.js              # Shared regex patterns
-├── scan.js                          # Remote scan engine (33 modules)
-├── action.yml                       # GitHub Action definition
+│       ├── fetch.js                    # HTTP with rate limiter, proxy, auth session
+│       └── patterns.js                 # 25+ secret patterns, XSS/SQLi/SSRF/SSTI regex
+├── scan.js                             # Remote scan engine (51 modules)
+├── action.yml                          # GitHub Action definition
 ├── .github/workflows/security.yml
 └── package.json
 ```
@@ -328,6 +315,6 @@ redgun/
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Built by [@aloc999 (Hashemi)](https://github.com/aloc999).
 
-This tool is intended for authorized security testing only. You are solely responsible for how you use it.
+This tool is for authorized security testing only. You are responsible for how you use it.
