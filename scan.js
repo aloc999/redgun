@@ -10,6 +10,9 @@ import { scanLlmRemote, scanCssInjectionRemote, scanPostMessageRemote, scanEsiRe
 import { validateFindings } from './src/core/validator.js';
 import { buildAttackChains } from './src/core/chains.js';
 import { runBrowserEngine } from './src/remote/browser.js';
+import { saveCheckpoint, loadCheckpoint, clearCheckpoint, fuzzEndpoints, exportBurpXml } from './src/core/advanced-features.js';
+import { runConcurrently } from './src/core/concurrent.js';
+import { getFindings } from './src/core/findings.js';
 
 export async function runRemoteScan(url, spinner, modules = null) {
   const target = new URL(url);
@@ -81,20 +84,45 @@ export async function runRemoteScan(url, spinner, modules = null) {
 
   const toRun = modules ? allModules.filter((m) => modules.includes(m.value)) : allModules;
 
-  for (const mod of toRun) {
-    try {
-      spinner.text = `[Remote] ${mod.name}...`;
-      await mod.fn();
-    } catch (err) {
-      // Module failed silently
-    }
+  const checkpoint = loadCheckpoint();
+  let startIndex = 0;
+  if (checkpoint && checkpoint.origin === origin) {
+    startIndex = checkpoint.moduleIndex || 0;
+    spinner.text = `Resuming from: ${checkpoint.moduleName}`;
   }
+
+  const remaining = toRun.slice(startIndex);
+  const safeParallel = ['probe', 'crawl', 'headers', 'tech', 'dns', 'h3', 'hpack', 'webrtc', 'websocket', 'clickjack', 'ssl', 'methods', 'race', 'wcd', 'upload', 'esi', 'grpc', 'openapi', 'takeover'];
+  const parallel = remaining.filter(m => safeParallel.includes(m.value));
+  const sequential = remaining.filter(m => !safeParallel.includes(m.value));
+
+  if (parallel.length > 1) {
+    await runConcurrently(parallel, 'Remote', spinner);
+  } else if (parallel.length === 1) {
+    await parallel[0].fn();
+  }
+
+  for (let i = 0; i < sequential.length; i++) {
+    try {
+      spinner.text = `[Remote] ${sequential[i].name}...`;
+      await sequential[i].fn();
+      saveCheckpoint(origin, startIndex + parallel.length + i, sequential[i].name);
+    } catch {}
+  }
+
+  spinner.text = '[Fuzzer] Brute-forcing directories...';
+  await fuzzEndpoints(origin, spinner);
 
   spinner.text = '[Validation] Verifying findings...';
   await validateFindings(origin, spinner);
 
   spinner.text = '[Chains] Building attack chains...';
   await buildAttackChains(origin, spinner);
+
+  clearCheckpoint();
+
+  spinner.text = '[Export] Generating Burp Suite XML...';
+  exportBurpXml(origin, getFindings());
 }
 
 async function scanHeaders(origin, spinner) {

@@ -14,22 +14,61 @@ import { exportJson, exportSarif } from '../src/core/reporter/json.js';
 import { exportHtml } from '../src/core/reporter/html.js';
 import { runLocalAudit, LOCAL_MODULES } from '../src/local/index.js';
 import { runRemoteScan } from '../scan.js';
+import { createSession, listProfiles, loadProfile } from '../src/core/session.js';
+import { setProxy } from '../src/core/proxy.js';
+import { diffScans, exportBurpXml } from '../src/core/advanced-features.js';
+import { getFindings } from '../src/core/findings.js';
 
 const program = new Command();
 
 program
   .name('redgun')
   .description('Black-box & white-box security auditor for web applications (Enhanced)')
-  .version('1.0.0');
+  .version('2.2.0');
 
 program
   .command('scan')
   .description('Remote scan (black-box) - give it a URL')
   .argument('[url]', 'Target URL to scan')
   .option('--modules <modules>', 'Comma-separated list of modules to run')
+  .option('--proxy <url>', 'HTTP proxy (e.g. http://127.0.0.1:8080 for Burp/Zap)')
+  .option('--auth <name>', 'Use saved auth profile')
+  .option('--auth-method <method>', 'Auth method: form/cookie/bearer/basic')
+  .option('--auth-login <url>', 'Login URL for form auth')
+  .option('--auth-user <user>', 'Username/email')
+  .option('--auth-pass <pass>', 'Password')
+  .option('--auth-token <token>', 'Bearer token or cookie value')
+  .option('--auth-token-field <field>', 'JSON field for token extraction')
+  .option('--scope <file>', 'File with URLs to scan (one per line)')
+  .option('--fuzz', 'Enable wordlist fuzzing')
+  .option('--burp', 'Export findings as Burp XML')
+  .option('--resume', 'Resume last interrupted scan')
   .action(async (url, options) => {
     printBanner();
     showDisclaimer();
+
+    if (options.proxy) {
+      setProxy(options.proxy);
+      console.log(chalk.gray(`  Proxy: ${options.proxy}`));
+    }
+
+    const spinner = ora('Preparing...').start();
+
+    if (options.auth || options.authMethod) {
+      const profile = options.auth ? loadProfile(options.auth) : null;
+      const authConfig = profile || {
+        name: options.auth || 'default',
+        method: options.authMethod || 'form',
+        loginUrl: options.authLogin,
+        targetUrl: url,
+        credentials: { email: options.authUser, password: options.authPass },
+        token: options.authToken,
+        cookie: options.authToken,
+        tokenField: options.authTokenField,
+        extraHeaders: {},
+      };
+      await createSession(authConfig, spinner);
+    }
 
     if (!url) {
       const answers = await inquirer.prompt([{
@@ -44,7 +83,7 @@ program
     if (!url.startsWith('http')) url = `https://${url}`;
 
     clearFindings();
-    const spinner = ora('Starting remote scan...').start();
+    spinner.text = 'Starting remote scan...';
 
     try {
       const modules = options.modules ? options.modules.split(',') : null;
@@ -58,7 +97,13 @@ program
     const jsonPath = exportJson();
     const htmlPath = exportHtml();
     console.log(chalk.gray(`  Reports saved: ${jsonPath}`));
-    console.log(chalk.gray(`  HTML report: ${htmlPath}\n`));
+    console.log(chalk.gray(`  HTML report: ${htmlPath}`));
+
+    if (options.burp) {
+      console.log(chalk.gray(`  Burp export: ./scans/burp-export.xml`));
+    }
+
+    console.log('');
   });
 
 program
@@ -165,6 +210,61 @@ program
       console.log(`  ${chalk.red('•')} ${mod}`);
     }
     console.log('');
+  });
+
+program
+  .command('diff')
+  .description('Diff two scan reports')
+  .argument('<fileA>', 'First scan JSON')
+  .argument('<fileB>', 'Second scan JSON')
+  .action(async (fileA, fileB) => {
+    printBanner();
+    clearFindings();
+    const spinner = ora('Comparing scans...').start();
+    await diffScans(fileA, fileB, spinner);
+    spinner.succeed('Diff complete');
+    printResults();
+  });
+
+program
+  .command('auth')
+  .description('Manage auth profiles')
+  .argument('[action]', 'Action: add, list, remove')
+  .option('--name <name>', 'Profile name')
+  .option('--method <method>', 'Auth method: form/cookie/bearer/basic')
+  .option('--login <url>', 'Login URL')
+  .option('--user <user>', 'Username')
+  .option('--pass <pass>', 'Password')
+  .option('--token <token>', 'Token or cookie')
+  .action(async (action, opts) => {
+    const { writeFileSync, unlinkSync, existsSync } = await import('fs');
+    const { join } = await import('path');
+    const PROFILES_DIR = '.redgun/profiles';
+
+    if (action === 'list') {
+      const profiles = listProfiles();
+      console.log(profiles.length > 0
+        ? chalk.bold('\n  Auth Profiles:\n') + profiles.map(p => `  ${chalk.green('•')} ${p}`).join('\n') + '\n'
+        : chalk.yellow('\n  No profiles saved.\n'));
+    } else if (action === 'add' && opts.name) {
+      if (!existsSync(PROFILES_DIR)) {
+        const { mkdirSync } = await import('fs');
+        mkdirSync(PROFILES_DIR, { recursive: true });
+      }
+      writeFileSync(join(PROFILES_DIR, `${opts.name}.json`), JSON.stringify({
+        name: opts.name, method: opts.method || 'bearer',
+        loginUrl: opts.login, credentials: { email: opts.user, password: opts.pass },
+        token: opts.token, tokenField: 'token',
+        targetUrl: '', extraHeaders: {},
+      }, null, 2));
+      console.log(chalk.green(`\n  Profile '${opts.name}' saved.\n`));
+    } else if (action === 'remove' && opts.name) {
+      const path = join(PROFILES_DIR, `${opts.name}.json`);
+      if (existsSync(path)) { unlinkSync(path); console.log(chalk.green(`\n  Profile '${opts.name}' removed.\n`)); }
+      else { console.log(chalk.red(`\n  Profile '${opts.name}' not found.\n`)); }
+    } else {
+      console.log(chalk.gray('\n  Usage: redgun auth [add|list|remove] --name <profile>\n'));
+    }
   });
 
 if (process.argv.length <= 2) {

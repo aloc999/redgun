@@ -1,6 +1,9 @@
 import https from 'https';
 import http from 'http';
 
+import { getActiveSession } from '../core/session.js';
+import { getProxyUrl } from '../core/proxy.js';
+
 const RATE_LIMIT = 5;
 let lastRequestTime = 0;
 
@@ -16,21 +19,37 @@ async function waitForSlot() {
   lastRequestTime = Date.now();
 }
 
+function getAuthHeaders() {
+  const session = getActiveSession();
+  return session ? session.headers : {};
+}
+
 export async function fetchWithTimeout(url, options = {}, timeout = 10000) {
   await waitForSlot();
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
+  const authHeaders = getAuthHeaders();
+  const proxy = getProxyUrl();
+
   try {
-    const response = await fetch(url, {
+    const fetchOptions = {
       ...options,
       signal: controller.signal,
       headers: {
         'User-Agent': 'RedGun-Security-Scanner/1.0',
+        ...authHeaders,
         ...options.headers,
       },
-    });
+    };
+
+    if (proxy) {
+      const { HttpsProxyAgent } = await import('https-proxy-agent');
+      fetchOptions.agent = new HttpsProxyAgent(proxy);
+    }
+
+    const response = await fetch(url, fetchOptions);
     clearTimeout(timer);
     return response;
   } catch (error) {
